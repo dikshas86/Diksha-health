@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diksha's Transformation Dashboard</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f8f7f4;color:#1a1a1a;font-size:15px}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+.nav{background:#fff;border-bottom:1px solid #e5e3dc;padding:0 0.5rem;display:flex;align-items:center;position:sticky;top:0;z-index:100;overflow-x:auto;gap:0}
+.nav-tab{padding:13px 13px;font-size:12.5px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;color:#666;transition:color .2s;flex-shrink:0}
+.nav-tab.active{color:#7c3aed;border-bottom-color:#7c3aed}
+.nav-tab:hover:not(.active){color:#333}
+.main{padding:1rem;max-width:920px;margin:0 auto}
+.page{display:none}.page.active{display:block}
+.section-title{font-size:15px;font-weight:600;color:#1a1a1a;margin:1.5rem 0 0.75rem;display:flex;align-items:center;gap:8px}
+.section-title i{color:#7c3aed;font-size:17px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.card{background:#fff;border:1px solid #e5e3dc;border-radius:12px;padding:1rem}
+.metric-card{background:#fff;border:1px solid #e5e3dc;border-radius:10px;padding:0.85rem 1rem}
+.metric-label{font-size:11px;color:#888;margin-bottom:3px;text-transform:uppercase;letter-spacing:.4px}
+.metric-value{font-size:20px;font-weight:600;color:#1a1a1a}
+.metric-unit{font-size:12px;color:#888;font-weight:400;margin-left:2px}
+.metric-delta{font-size:11px;margin-top:3px}
+.delta-good{color:#16a34a}.delta-bad{color:#dc2626}.delta-neu{color:#888}
+.tag{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:500}
+.tag-red{background:#fef2f2;color:#b91c1c}
+.tag-yellow{background:#fefce8;color:#92400e}
+.tag-green{background:#f0fdf4;color:#15803d}
+.tag-purple{background:#f5f3ff;color:#6d28d9}
+.alert-box{border-radius:10px;padding:11px 13px;margin-bottom:10px;font-size:13px;display:flex;gap:10px;align-items:flex-start}
+.alert-red{background:#fef2f2;border:1px solid #fecaca}
+.alert-yellow{background:#fefce8;border:1px solid #fde68a}
+.alert-green{background:#f0fdf4;border:1px solid #bbf7d0}
+.alert-purple{background:#f5f3ff;border:1px solid #ddd6fe}
+.alert-blue{background:#eff6ff;border:1px solid #bfdbfe}
+.alert-icon{font-size:15px;margin-top:1px;flex-shrink:0}
+.input-row{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+.input-row label{font-size:12px;color:#555;width:155px;flex-shrink:0}
+.input-row input[type=number]{width:88px;padding:5px 9px;border:1px solid #d4d2cb;border-radius:8px;font-size:13px;background:#fff;color:#1a1a1a}
+.input-row input[type=range]{flex:1;accent-color:#7c3aed}
+.input-row .val{font-size:13px;font-weight:600;color:#7c3aed;width:45px}
+.btn{padding:7px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:1px solid #d4d2cb;background:#fff;color:#333;transition:.15s}
+.btn:hover{background:#f0eeff;border-color:#7c3aed;color:#7c3aed}
+.btn-primary{background:#7c3aed;color:#fff;border-color:#7c3aed}
+.btn-primary:hover{background:#6d28d9;border-color:#6d28d9}
+.btn-sm{padding:5px 12px;font-size:12px;border-radius:6px}
+.table-simple{width:100%;border-collapse:collapse;font-size:12.5px}
+.table-simple th{text-align:left;padding:7px 9px;background:#f8f7f4;color:#555;font-weight:500;border-bottom:1px solid #e5e3dc}
+.table-simple td{padding:7px 9px;border-bottom:1px solid #f0ede6;color:#333;vertical-align:top}
+.table-simple tr:last-child td{border-bottom:none}
+.blood-marker{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid #f0ede6}
+.blood-marker:last-child{border-bottom:none}
+.bm-name{font-size:12px;font-weight:500;flex:1.2}
+.bm-val{font-size:12px;font-weight:700;width:85px}
+.bm-bar-wrap{flex:2;height:7px;background:#eee;border-radius:4px;position:relative;overflow:hidden}
+.bm-bar-fill{height:100%;border-radius:4px;position:absolute;top:0;left:0;transition:width .8s}
+.bm-ref{font-size:10px;color:#aaa;width:90px;text-align:right}
+.week-selector{display:flex;align-items:center;gap:10px;margin-bottom:1rem;flex-wrap:wrap}
+.week-selector select{padding:6px 10px;border:1px solid #d4d2cb;border-radius:8px;font-size:12px;background:#fff;color:#333}
+.chart-wrap{position:relative;width:100%;height:240px}
+.chart-wrap-lg{position:relative;width:100%;height:300px}
+.checklist{list-style:none}
+.checklist li{padding:5px 0;font-size:12.5px;display:flex;gap:7px;align-items:flex-start;color:#444;border-bottom:1px solid #f0ede6;line-height:1.4}
+.checklist li:last-child{border-bottom:none}
+.checklist li i{font-size:14px;flex-shrink:0;margin-top:1px}
+.day-pill{display:inline-block;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:500;cursor:pointer;margin:2px;border:1px solid #d4d2cb;background:#fff;color:#555}
+.day-pill.active{background:#7c3aed;color:#fff;border-color:#7c3aed}
+.header-bar{background:#7c3aed;color:#fff;padding:1.1rem 1rem 0.9rem;border-radius:12px;margin-bottom:1rem}
+.header-bar h1{font-size:17px;font-weight:600;margin-bottom:2px}
+.header-bar p{font-size:12px;opacity:0.85}
+textarea{width:100%;border:1px solid #d4d2cb;border-radius:8px;padding:7px 9px;font-size:13px;font-family:inherit;color:#333;background:#fff;resize:vertical;min-height:65px}
+select{border:1px solid #d4d2cb;border-radius:8px;padding:6px 10px;font-size:13px;background:#fff;color:#333}
+
+/* AI Meal Planner */
+.meal-output{background:#f8f7f4;border:1px solid #e5e3dc;border-radius:10px;padding:1rem;font-size:13px;line-height:1.7;color:#333;min-height:80px;white-space:pre-wrap;max-height:520px;overflow-y:auto}
+.meal-output h3{font-size:14px;font-weight:600;color:#7c3aed;margin:10px 0 4px}
+.meal-output strong{color:#1a1a1a;font-weight:600}
+.typing-cursor::after{content:'▋';animation:blink 0.7s infinite;color:#7c3aed}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.spinner{width:18px;height:18px;border:2px solid #e5e3dc;border-top-color:#7c3aed;border-radius:50%;animation:spin 0.7s linear infinite;display:inline-block;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.pref-chip{display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;margin:3px;border:1px solid #d4d2cb;background:#fff;color:#555;transition:.15s}
+.pref-chip.active{background:#7c3aed;color:#fff;border-color:#7c3aed}
+.pref-chip:hover:not(.active){background:#f0eeff;border-color:#7c3aed;color:#7c3aed}
+
+/* Progress charts tab */
+.chart-card{background:#fff;border:1px solid #e5e3dc;border-radius:12px;padding:1rem;margin-bottom:12px}
+.chart-legend{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:8px;font-size:11px;color:#666}
+.chart-legend span{display:flex;align-items:center;gap:4px}
+.chart-legend .dot{width:10px;height:10px;border-radius:2px}
+
+/* Ultrahuman card */
+.uh-score{text-align:center}
+.uh-score .num{font-size:32px;font-weight:700}
+.uh-score .lbl{font-size:11px;color:#888;margin-top:2px}
+
+/* Mood/period tracker */
+.period-chip{display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;cursor:pointer;margin:3px;border:1px solid #d4d2cb;background:#fff;color:#555}
+.period-chip.active{background:#ec4899;color:#fff;border-color:#ec4899}
+
+.tab-content-inner{animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<h2 class="sr-only">Diksha's weekly health transformation dashboard — blood report analysis, progress graphs, AI meal planner, body tracking, workout, recovery, skin and hair</h2>
+
+<nav class="nav">
+  <div class="nav-tab active" onclick="switchTab('overview')"><i class="ti ti-home" style="font-size:13px"></i> Overview</div>
+  <div class="nav-tab" onclick="switchTab('progress')"><i class="ti ti-chart-line" style="font-size:13px"></i> Progress</div>
+  <div class="nav-tab" onclick="switchTab('blood')"><i class="ti ti-droplet" style="font-size:13px"></i> Blood</div>
+  <div class="nav-tab" onclick="switchTab('body')"><i class="ti ti-ruler" style="font-size:13px"></i> Body Log</div>
+  <div class="nav-tab" onclick="switchTab('meal')"><i class="ti ti-chef-hat" style="font-size:13px"></i> AI Meals</div>
+  <div class="nav-tab" onclick="switchTab('nutrition')"><i class="ti ti-salad" style="font-size:13px"></i> Nutrition</div>
+  <div class="nav-tab" onclick="switchTab('workout')"><i class="ti ti-barbell" style="font-size:13px"></i> Workout</div>
+  <div class="nav-tab" onclick="switchTab('recovery')"><i class="ti ti-moon" style="font-size:13px"></i> Recovery</div>
+  <div class="nav-tab" onclick="switchTab('skin')"><i class="ti ti-sparkles" style="font-size:13px"></i> Skin & Hair</div>
+  <div class="nav-tab" onclick="switchTab('weekly')"><i class="ti ti-notes" style="font-size:13px"></i> Weekly Log</div>
+</nav>
+
+<div class="main">
+
+<!-- ══════════════ OVERVIEW ══════════════ -->
+<div class="page active" id="page-overview">
+<div class="tab-content-inner">
+  <div class="header-bar">
+    <h1>Hi Diksha 👋 Your Transformation HQ</h1>
+    <p>Week of May 23, 2026 · Age 39 · 5'4" · 83 kg · Pear shape · Vegetarian</p>
+  </div>
+  <div class="alert-box alert-red"><i class="ti ti-alert-triangle alert-icon" style="color:#dc2626"></i><div><strong>Inflammation alert:</strong> CRP was 18.8 mg/L in April → improved to 8.22 mg/L in May. ESR still 70 mm/hr (very high). This is your #1 fat-loss blocker. Follow the anti-inflammatory protocol daily.</div></div>
+  <div class="alert-box alert-yellow"><i class="ti ti-heart alert-icon" style="color:#b45309"></i><div><strong>Hormone watch:</strong> AMH 0.79 ng/mL (low fertility range) — perimenopause transition may be starting. Prioritise hormone-friendly nutrition and stress management. Discuss with Dr. Warty.</div></div>
+  <div class="alert-box alert-green"><i class="ti ti-check alert-icon" style="color:#16a34a"></i><div><strong>Good news:</strong> TSH 1.10 ✓ · Liver function all normal ✓ · hCG negative ✓ · Haemoglobin improved 12.4 → 13.5 g/dL ✓ · Procalcitonin normal ✓</div></div>
+
+  <div class="section-title"><i class="ti ti-flame"></i> Key markers snapshot</div>
+  <div class="grid-4">
+    <div class="metric-card"><div class="metric-label">CRP (May)</div><div class="metric-value">8.2<span class="metric-unit">mg/L</span></div><div class="metric-delta delta-bad">↓ from 18.8 · borderline</div></div>
+    <div class="metric-card"><div class="metric-label">TSH</div><div class="metric-value">1.1<span class="metric-unit">uIU</span></div><div class="metric-delta delta-good">✓ Optimal</div></div>
+    <div class="metric-card"><div class="metric-label">AMH</div><div class="metric-value">0.79<span class="metric-unit">ng/mL</span></div><div class="metric-delta delta-bad">Low range — watch</div></div>
+    <div class="metric-card"><div class="metric-label">Haemoglobin</div><div class="metric-value">13.5<span class="metric-unit">g/dL</span></div><div class="metric-delta delta-good">✓ Improved</div></div>
+  </div>
+
+  <div class="section-title"><i class="ti ti-target"></i> 8-week transformation roadmap</div>
+  <div class="grid-2">
+    <div class="card"><div style="font-size:12px;font-weight:600;color:#7c3aed;margin-bottom:7px">Phase 1 — Weeks 1–4: Heal the foundation</div>
+      <ul class="checklist">
+        <li><i class="ti ti-circle-check" style="color:#16a34a"></i>Reduce CRP to below 5 mg/L</li>
+        <li><i class="ti ti-circle-check" style="color:#16a34a"></i>Hit protein target 85–100g/day</li>
+        <li><i class="ti ti-circle-check" style="color:#16a34a"></i>Strengthen left knee — pain-free gym</li>
+        <li><i class="ti ti-circle-check" style="color:#16a34a"></i>Sleep quality 7.5–8 hrs nightly</li>
+        <li><i class="ti ti-circle-check" style="color:#16a34a"></i>Reduce caffeine to 1 cup max</li>
+      </ul>
+    </div>
+    <div class="card"><div style="font-size:12px;font-weight:600;color:#7c3aed;margin-bottom:7px">Phase 2 — Weeks 5–8: Shape & sculpt</div>
+      <ul class="checklist">
+        <li><i class="ti ti-circle-dashed" style="color:#a855f7"></i>Waist: 40 → 36 inches</li>
+        <li><i class="ti ti-circle-dashed" style="color:#a855f7"></i>Glute activation & shaping</li>
+        <li><i class="ti ti-circle-dashed" style="color:#a855f7"></i>Arm toning & posture correction</li>
+        <li><i class="ti ti-circle-dashed" style="color:#a855f7"></i>Skin & hair glow protocol</li>
+        <li><i class="ti ti-circle-dashed" style="color:#a855f7"></i>Weight: 83 → 76–77 kg</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section-title"><i class="ti ti-calendar"></i> Today's schedule</div>
+  <div class="card">
+    <table class="table-simple">
+      <tr><td style="width:110px;color:#7c3aed;font-weight:600;font-size:12px">6:00 AM</td><td style="font-size:12.5px">Wake up · 2 glasses warm water + lemon · 5 min breathing</td></tr>
+      <tr><td style="color:#7c3aed;font-weight:600;font-size:12px">6–7:30 AM</td><td style="font-size:12.5px">Morning chores + kids routine · Light stretching during breaks</td></tr>
+      <tr><td style="color:#7c3aed;font-weight:600;font-size:12px">7:15 AM</td><td style="font-size:12.5px">Pre-workout: banana + 5 almonds (if hungry) or fasted</td></tr>
+      <tr><td style="color:#7c3aed;font-weight:600;font-size:12px">8:30–10:30</td><td style="font-size:12.5px">Gym session — see Workout tab</td></tr>
+      <tr><td style="color:#7c3aed;font-weight:600;font-size:12px">10:45 AM</td><td style="font-size:12.5px">Post-workout breakfast (high protein) — see AI Meals tab</td></tr>
+      <tr><td style="color:#7c3aed;font-weight:600;font-size:12px">1:30 PM</td><td style="font-size:12.5px">Lunch</td></tr>
+      <tr><td style="color:#7c3aed;font-weight:600;font-size:12px">4:00 PM</td><td style="font-size:12.5px">Snack + collagen-support drink</td></tr>
+      <tr><td style="color:#7c3aed;font-weight:600;font-size:12px">8:00 PM</td><td style="font-size:12.5px">Dinner (light, anti-inflammatory)</td></tr>
+      <tr><td style="color:#7c3aed;font-weight:600;font-size:12px">9:30 PM</td><td style="font-size:12.5px">Night routine · Magnesium · Wind down</td></tr>
+      <tr><td style="color:#7c3aed;font-weight:600;font-size:12px">10:30 PM</td><td style="font-size:12.5px">Sleep</td></tr>
+    </table>
+  </div>
+
+  <div class="section-title"><i class="ti ti-stethoscope"></i> Missing blood tests — request urgently</div>
+  <div class="grid-2">
+    <div class="card"><div style="font-size:12px;font-weight:600;color:#dc2626;margin-bottom:6px">Urgent</div>
+      <ul class="checklist">
+        <li><i class="ti ti-point-filled" style="color:#dc2626"></i>Vitamin D3 (immunity & weight loss)</li>
+        <li><i class="ti ti-point-filled" style="color:#dc2626"></i>Vitamin B12 (vegetarian risk)</li>
+        <li><i class="ti ti-point-filled" style="color:#dc2626"></i>Ferritin + Iron profile</li>
+        <li><i class="ti ti-point-filled" style="color:#dc2626"></i>Fasting Insulin + HbA1c</li>
+      </ul>
+    </div>
+    <div class="card"><div style="font-size:12px;font-weight:600;color:#d97706;margin-bottom:6px">Recommended soon</div>
+      <ul class="checklist">
+        <li><i class="ti ti-point-filled" style="color:#d97706"></i>Lipid profile</li>
+        <li><i class="ti ti-point-filled" style="color:#d97706"></i>Testosterone (free & total)</li>
+        <li><i class="ti ti-point-filled" style="color:#d97706"></i>Oestradiol (E2)</li>
+        <li><i class="ti ti-point-filled" style="color:#d97706"></i>ANA / anti-CCP (high ESR)</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════ PROGRESS GRAPHS ══════════════ -->
+<div class="page" id="page-progress">
+<div class="tab-content-inner">
+  <div class="section-title"><i class="ti ti-chart-line"></i> Weekly progress tracker</div>
+  <div class="alert-box alert-blue"><i class="ti ti-info-circle alert-icon" style="color:#1d4ed8"></i><div>Log measurements in the Body Log tab each week — graphs update automatically here. Baseline set from your April 2026 reports.</div></div>
+
+  <div class="chart-card">
+    <div style="font-size:13px;font-weight:600;margin-bottom:4px;color:#1a1a1a">Weight progress (kg)</div>
+    <div class="chart-legend"><span><span class="dot" style="background:#7c3aed"></span>Weight</span><span><span class="dot" style="background:#e5e3dc;border:1px solid #ccc"></span>Target</span></div>
+    <div class="chart-wrap"><canvas id="chartWeight" role="img" aria-label="Weekly weight progress chart">Weight goal: 83kg down to 76kg over 8 weeks</canvas></div>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:12px">
+    <div class="chart-card">
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px">Waist (inches)</div>
+      <div class="chart-wrap"><canvas id="chartWaist" role="img" aria-label="Weekly waist measurement chart">Waist reduction from 40 to 36 inches</canvas></div>
+    </div>
+    <div class="chart-card">
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px">Hips (inches)</div>
+      <div class="chart-wrap"><canvas id="chartHips" role="img" aria-label="Weekly hips measurement chart">Hip measurement tracking</canvas></div>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <div style="font-size:13px;font-weight:600;margin-bottom:4px;color:#1a1a1a">Wellness scores (weekly avg)</div>
+    <div class="chart-legend"><span><span class="dot" style="background:#16a34a"></span>Energy</span><span><span class="dot" style="background:#7c3aed"></span>Sleep</span><span><span class="dot" style="background:#dc2626"></span>Stress</span><span><span class="dot" style="background:#d97706"></span>Knee pain</span></div>
+    <div class="chart-wrap-lg"><canvas id="chartWellness" role="img" aria-label="Weekly wellness scores radar chart">Energy, sleep, stress and knee pain tracked weekly</canvas></div>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:12px">
+    <div class="chart-card">
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px">CRP inflammation (mg/L)</div>
+      <div class="chart-legend"><span><span class="dot" style="background:#dc2626"></span>CRP</span><span><span class="dot" style="background:#16a34a"></span>Safe zone &lt;5</span></div>
+      <div class="chart-wrap"><canvas id="chartCRP" role="img" aria-label="CRP inflammation trend chart">CRP reducing from 18.8 to target below 5</canvas></div>
+    </div>
+    <div class="chart-card">
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px">Daily protein (grams)</div>
+      <div class="chart-legend"><span><span class="dot" style="background:#a855f7"></span>Protein logged</span><span><span class="dot" style="background:#e5e3dc;border:1px solid #ccc"></span>Target 85g</span></div>
+      <div class="chart-wrap"><canvas id="chartProtein" role="img" aria-label="Daily protein intake chart">Protein intake vs 85g daily target</canvas></div>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <div style="font-size:13px;font-weight:600;margin-bottom:4px">Habit completion rate (%)</div>
+    <div class="chart-wrap-lg"><canvas id="chartHabits" role="img" aria-label="Weekly habit completion bar chart">Habit completion percentage per week</canvas></div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════ BLOOD ══════════════ -->
+<div class="page" id="page-blood">
+<div class="tab-content-inner">
+  <div class="section-title"><i class="ti ti-droplet"></i> Blood report analysis — Apr & May 2026</div>
+  <div class="alert-box alert-red"><i class="ti ti-alert-circle alert-icon" style="color:#dc2626"></i><div><strong>Action required:</strong> ESR 70 mm/hr is very high (normal 0–12). Combined with CRP elevation, this points to systemic inflammation. Discuss with Dr. Warty — rule out autoimmune, gut dysbiosis, or chronic infection.</div></div>
+
+  <div class="card" style="margin-bottom:12px">
+    <div style="font-size:13px;font-weight:600;color:#7c3aed;margin-bottom:8px">Inflammation markers</div>
+    <div class="blood-marker"><div class="bm-name">CRP — April 2026</div><div class="bm-val" style="color:#dc2626">18.8 mg/L</div><div class="bm-bar-wrap"><div class="bm-bar-fill" style="width:95%;background:#dc2626"></div></div><div class="bm-ref">Normal &lt;10</div></div>
+    <div class="blood-marker"><div class="bm-name">CRP — May 2026</div><div class="bm-val" style="color:#d97706">8.22 mg/L</div><div class="bm-bar-wrap"><div class="bm-bar-fill" style="width:41%;background:#d97706"></div></div><div class="bm-ref">↓ Improving</div></div>
+    <div class="blood-marker"><div class="bm-name">ESR — April 2026</div><div class="bm-val" style="color:#dc2626">70 mm/hr</div><div class="bm-bar-wrap"><div class="bm-bar-fill" style="width:99%;background:#dc2626"></div></div><div class="bm-ref">Normal 0–12</div></div>
+    <div class="blood-marker"><div class="bm-name">Procalcitonin</div><div class="bm-val" style="color:#16a34a">0.032</div><div class="bm-bar-wrap"><div class="bm-bar-fill" style="width:6%;background:#16a34a"></div></div><div class="bm-ref">Normal &lt;0.5 ✓</div></div>
+  </div>
+
+  <div class="card" style="margin-bottom:12px">
+    <div style="font-size:13px;font-weight:600;color:#7c3aed;margin-bottom:8px">CBC / Blood count</div>
+    <div class="blood-marker"><div class="bm-name">WBC — Apr</div><div class="bm-val" style="color:#d97706">10.51 K/uL</div><div class="bm-bar-wrap"><div class="bm-bar-fill" style="width:75%;background:#d97706"></div></div><div class="bm-ref">4–10 · slightly high</div></div>
+    <div class="blood-marker"><div class="bm-name">Hb — Apr</div><div class="bm-val" style="color:#d97706">12.4 g/dL</div><div class="bm-bar-wrap"><div class="bm-bar-fill" style="width:50%;background:#d97706"></div></div><div class="bm-ref">12–15 · low-normal</div></div>
+    <div class="blood-marker"><div class="bm-name">Hb — May</div><div class="bm-val" style="color:#16a34a">13.5 g/dL</div><div class="bm-bar-wrap"><div class="bm-bar-fill" style="width:60%;background:#16a34a"></div></div><div class="bm-ref">12–15 ✓ improved</div></div>
+    <div class="blood-marker"><div class="bm-name">Hematocrit — Apr</div><div class="bm-val" style="color:#dc2626">35.7%</div><div class="bm-bar-wrap"><div class="bm-bar-fill" style="width:45%;background:#dc2626"></div></div><div class="bm-ref">36–46 · slightly low</div></div>
+    <div class="blood-marker"><div class="bm-name">Lymphocytes — Apr</div><div class="bm-val" style="color:#dc2626">16.4%</div><div class="bm-bar-wrap"><div class="bm-bar-fill" style="width:30%;background:#dc2626"></div></div><div class="bm-ref">20–40% · low</div></div>
+  </div>
+
+  <div class="card" style="margin-bottom:12px">
+    <div style="font-size:13px;font-weight:600;color:#7c3aed;margin-bottom:8px">Hormone panel</div>
+    <div class="blood-marker"><div class="bm-name">TSH</div><div class="bm-val" style="color:#16a34a">1.10 uIU</div><div class="bm-bar-wrap"><div class="bm-bar-fill" style="width:22%;background:#16a34a"></div></div><div class="bm-ref">0.465–4.68 ✓</div></div>
+    <div class="blood-marker"><div class="bm-name">FSH</div><div class="bm-val" style="color:#16a34a">4.62 mIU/mL</div><div class="bm-bar-wrap"><div class="bm-bar-fill" style="width:35%;background:#16a34a"></div></div><div class="bm-ref">Follicular 2.9–12 ✓</div></div>
+    <div class="blood-marker"><div class="bm-name">Prolactin</div><div class="bm-val" style="color:#16a34a">23.92 ng/mL</div><div class="bm-bar-wrap"><div class="bm-bar-fill" style="width:48%;background:#16a34a"></div></div><div class="bm-ref">5–35 ✓</div></div>
+    <div class="blood-marker"><div class="bm-name">AMH</div><div class="bm-val" style="color:#dc2626">0.79 ng/mL</div><div class="bm-bar-wrap"><div class="bm-bar-fill" style="width:15%;background:#d97706"></div></div><div class="bm-ref">Optimal 4–6.79 · low</div></div>
+  </div>
+
+  <div class="card">
+    <div style="font-size:13px;font-weight:600;color:#7c3aed;margin-bottom:8px">Liver function — May 2026 (all normal)</div>
+    <div class="blood-marker"><div class="bm-name">Bilirubin Total</div><div class="bm-val" style="color:#16a34a">0.5 mg/dL</div><div class="bm-bar-wrap"><div class="bm-bar-fill" style="width:25%;background:#16a34a"></div></div><div class="bm-ref">0.2–1.0 ✓</div></div>
+    <div class="blood-marker"><div class="bm-name">SGOT (AST)</div><div class="bm-val" style="color:#16a34a">19 U/L</div><div class="bm-bar-wrap"><div class="bm-bar-fill" style="width:38%;background:#16a34a"></div></div><div class="bm-ref">&lt;31 ✓</div></div>
+    <div class="blood-marker"><div class="bm-name">SGPT (ALT)</div><div class="bm-val" style="color:#16a34a">20 U/L</div><div class="bm-bar-wrap"><div class="bm-bar-fill" style="width:40%;background:#16a34a"></div></div><div class="bm-ref">&lt;31 ✓</div></div>
+    <div class="blood-marker"><div class="bm-name">Alk Phosphatase</div><div class="bm-val" style="color:#16a34a">72 U/L</div><div class="bm-bar-wrap"><div class="bm-bar-fill" style="width:46%;background:#16a34a"></div></div><div class="bm-ref">35–105 ✓</div></div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════ BODY LOG ══════════════ -->
+<div class="page" id="page-body">
+<div class="tab-content-inner">
+  <div class="section-title"><i class="ti ti-ruler"></i> Weekly body measurements</div>
+  <div class="week-selector">
+    <label style="font-size:12px;color:#555">Week:</label>
+    <select id="week-select" onchange="loadWeek()">
+      <option value="w1">Week 1 — May 23</option><option value="w2">Week 2 — May 30</option>
+      <option value="w3">Week 3 — Jun 6</option><option value="w4">Week 4 — Jun 13</option>
+      <option value="w5">Week 5 — Jun 20</option><option value="w6">Week 6 — Jun 27</option>
+      <option value="w7">Week 7 — Jul 4</option><option value="w8">Week 8 — Jul 11</option>
+    </select>
+    <button class="btn btn-primary btn-sm" onclick="saveBodyData()">Save week</button>
+    <button class="btn btn-sm" onclick="refreshCharts()">Refresh graphs ↗</button>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div style="font-size:13px;font-weight:600;color:#7c3aed;margin-bottom:8px">Measurements</div>
+      <div class="input-row"><label>Weight (kg)</label><input type="number" id="b-weight" step="0.1" placeholder="83.0"></div>
+      <div class="input-row"><label>Waist (inches)</label><input type="number" id="b-waist" step="0.5" placeholder="40"></div>
+      <div class="input-row"><label>Hips (inches)</label><input type="number" id="b-hips" step="0.5" placeholder="46"></div>
+      <div class="input-row"><label>Bust (inches)</label><input type="number" id="b-bust" step="0.5" placeholder="36"></div>
+      <div class="input-row"><label>Thigh (inches)</label><input type="number" id="b-thigh" step="0.5" placeholder="—"></div>
+      <div class="input-row"><label>Upper arm (inches)</label><input type="number" id="b-arm" step="0.5" placeholder="—"></div>
+      <div class="input-row"><label>Protein today (g)</label><input type="number" id="b-protein" placeholder="85" min="0" max="200"></div>
+      <div class="input-row"><label>Water (glasses)</label><input type="number" id="b-water" placeholder="8" min="0" max="20"></div>
+      <div class="input-row"><label>Tea/coffee cups</label><input type="number" id="b-caffeine" placeholder="2" min="0" max="10"></div>
+    </div>
+    <div class="card">
+      <div style="font-size:13px;font-weight:600;color:#7c3aed;margin-bottom:8px">Wellness scores (1–10)</div>
+      <div class="input-row"><label>Energy level</label><input type="range" min="1" max="10" value="5" id="s-energy" oninput="upd('v-energy',this.value)"><span class="val" id="v-energy">5</span></div>
+      <div class="input-row"><label>Sleep quality</label><input type="range" min="1" max="10" value="5" id="s-sleep" oninput="upd('v-sleep',this.value)"><span class="val" id="v-sleep">5</span></div>
+      <div class="input-row"><label>Digestion</label><input type="range" min="1" max="10" value="5" id="s-digestion" oninput="upd('v-digestion',this.value)"><span class="val" id="v-digestion">5</span></div>
+      <div class="input-row"><label>Stress (1=low)</label><input type="range" min="1" max="10" value="5" id="s-stress" oninput="upd('v-stress',this.value)"><span class="val" id="v-stress">5</span></div>
+      <div class="input-row"><label>Knee pain (0=none)</label><input type="range" min="0" max="10" value="3" id="s-knee" oninput="upd('v-knee',this.value)"><span class="val" id="v-knee">3</span></div>
+      <div class="input-row"><label>Cravings</label><input type="range" min="1" max="10" value="5" id="s-cravings" oninput="upd('v-cravings',this.value)"><span class="val" id="v-cravings">5</span></div>
+      <div class="input-row"><label>Mood</label><input type="range" min="1" max="10" value="5" id="s-mood" oninput="upd('v-mood',this.value)"><span class="val" id="v-mood">5</span></div>
+      <div class="input-row"><label>Bloating</label><input type="range" min="1" max="10" value="5" id="s-bloating" oninput="upd('v-bloating',this.value)"><span class="val" id="v-bloating">5</span></div>
+    </div>
+  </div>
+
+  <div id="body-save-msg" style="display:none;margin-top:10px" class="alert-box alert-green"><i class="ti ti-check alert-icon" style="color:#16a34a"></i>Saved! Tap "Refresh graphs" in the Progress tab to update charts.</div>
+
+  <div class="section-title"><i class="ti ti-scale"></i> Baseline vs targets</div>
+  <div class="card">
+    <table class="table-simple">
+      <tr><th>Measurement</th><th>Apr baseline</th><th>8-week target</th><th>Change needed</th></tr>
+      <tr><td>Weight</td><td>83 kg</td><td>76–77 kg</td><td><span class="tag tag-red">−6–7 kg</span></td></tr>
+      <tr><td>Waist</td><td>40 inches</td><td>35–36 inches</td><td><span class="tag tag-red">−4–5 inches</span></td></tr>
+      <tr><td>Hips</td><td>46 inches</td><td>43–44 inches</td><td><span class="tag tag-yellow">−2–3 inches</span></td></tr>
+      <tr><td>Bust</td><td>36 inches</td><td>34–35 inches</td><td><span class="tag tag-yellow">−1–2 inches</span></td></tr>
+      <tr><td>CRP</td><td>18.8 → 8.22 mg/L</td><td>Below 3 mg/L</td><td><span class="tag tag-yellow">Anti-inflam diet</span></td></tr>
+    </table>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════ AI MEAL PLANNER ══════════════ -->
+<div class="page" id="page-meal">
+<div class="tab-content-inner">
+  <div class="section-title"><i class="ti ti-chef-hat"></i> AI Indian vegetarian meal planner</div>
+  <div class="alert-box alert-purple"><i class="ti ti-robot alert-icon" style="color:#7c3aed"></i><div>Powered by Claude AI. Your health profile (83 kg, pear-shape, inflammation, vegetarian, knee pain, hormone health) is built into every meal plan generated.</div></div>
+
+  <div class="card" style="margin-bottom:12px">
+    <div style="font-size:13px;font-weight:600;color:#7c3aed;margin-bottom:10px">Customise your meal plan</div>
+    
+    <div style="margin-bottom:12px">
+      <div style="font-size:12px;color:#555;margin-bottom:5px;font-weight:500">Plan type</div>
+      <div id="plan-type">
+        <span class="pref-chip active" data-group="plan">Full day plan</span>
+        <span class="pref-chip" data-group="plan">Post-workout meal</span>
+        <span class="pref-chip" data-group="plan">Anti-inflammatory day</span>
+        <span class="pref-chip" data-group="plan">High-protein day</span>
+        <span class="pref-chip" data-group="plan">Gut healing plan</span>
+        <span class="pref-chip" data-group="plan">Festival / eating-out guide</span>
+        <span class="pref-chip" data-group="plan">7-day weekly plan</span>
+      </div>
+    </div>
+
+    <div style="margin-bottom:12px">
+      <div style="font-size:12px;color:#555;margin-bottom:5px;font-weight:500">Today's focus</div>
+      <div id="focus-type">
+        <span class="pref-chip active" data-group="focus">Fat loss</span>
+        <span class="pref-chip" data-group="focus">Reduce inflammation</span>
+        <span class="pref-chip" data-group="focus">Skin glow</span>
+        <span class="pref-chip" data-group="focus">Hair health</span>
+        <span class="pref-chip" data-group="focus">Hormone balance</span>
+        <span class="pref-chip" data-group="focus">Energy boost</span>
+        <span class="pref-chip" data-group="focus">Sleep support</span>
+      </div>
+    </div>
+
+    <div style="margin-bottom:12px">
+      <div style="font-size:12px;color:#555;margin-bottom:5px;font-weight:500">Calorie range</div>
+      <div id="cal-type">
+        <span class="pref-chip active" data-group="cal">1400–1500 kcal (deficit)</span>
+        <span class="pref-chip" data-group="cal">1500–1600 kcal (moderate)</span>
+        <span class="pref-chip" data-group="cal">1600–1800 kcal (maintenance)</span>
+      </div>
+    </div>
+
+    <div style="margin-bottom:12px">
+      <div style="font-size:12px;color:#555;margin-bottom:5px;font-weight:500">Anything to avoid today?</div>
+      <textarea id="avoid-input" placeholder="e.g. No dairy today, avoiding gluten, have guests, travelling, low on groceries..." style="min-height:50px"></textarea>
+    </div>
+
+    <button class="btn btn-primary" onclick="generateMealPlan()" id="gen-btn" style="width:100%;padding:10px;font-size:14px">
+      <i class="ti ti-wand" style="margin-right:6px"></i>Generate my personalised meal plan ↗
+    </button>
+  </div>
+
+  <div id="meal-result-area" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div style="font-size:13px;font-weight:600;color:#7c3aed">Your personalised meal plan</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-sm" onclick="copyMealPlan()"><i class="ti ti-copy" style="font-size:12px"></i> Copy</button>
+        <button class="btn btn-sm" onclick="saveMealPlan()"><i class="ti ti-bookmark" style="font-size:12px"></i> Save</button>
+      </div>
+    </div>
+    <div class="meal-output" id="meal-output"></div>
+  </div>
+
+  <div id="saved-meals-area" style="margin-top:1rem;display:none">
+    <div class="section-title" style="margin-top:0"><i class="ti ti-bookmark"></i> Saved meal plans</div>
+    <div id="saved-meals-list"></div>
+  </div>
+
+  <div class="section-title"><i class="ti ti-bulb"></i> Quick craving control & eating-out tips</div>
+  <div class="grid-2">
+    <div class="card">
+      <div style="font-size:12px;font-weight:600;color:#7c3aed;margin-bottom:7px">Sugar craving attack?</div>
+      <ul class="checklist">
+        <li><i class="ti ti-point-filled" style="color:#7c3aed"></i>1 medjool date + 5 almonds</li>
+        <li><i class="ti ti-point-filled" style="color:#7c3aed"></i>Warm turmeric + cinnamon milk</li>
+        <li><i class="ti ti-point-filled" style="color:#7c3aed"></i>1 small piece dark chocolate (85%+)</li>
+        <li><i class="ti ti-point-filled" style="color:#7c3aed"></i>L-glutamine powder in water (500mg)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div style="font-size:12px;font-weight:600;color:#7c3aed;margin-bottom:7px">Eating out / restaurant</div>
+      <ul class="checklist">
+        <li><i class="ti ti-point-filled" style="color:#7c3aed"></i>Order dal, sabzi, raita before bread</li>
+        <li><i class="ti ti-point-filled" style="color:#7c3aed"></i>Skip the basket of naan — ask for 1 roti</li>
+        <li><i class="ti ti-point-filled" style="color:#7c3aed"></i>Tandoori paneer > paneer butter masala</li>
+        <li><i class="ti ti-point-filled" style="color:#7c3aed"></i>Eat salad/soup first, slows eating</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════ NUTRITION ══════════════ -->
+<div class="page" id="page-nutrition">
+<div class="tab-content-inner">
+  <div class="section-title"><i class="ti ti-salad"></i> Nutrition protocol</div>
+  <div class="alert-box alert-purple"><i class="ti ti-bulb alert-icon" style="color:#7c3aed"></i><div><strong>Daily targets:</strong> Calories 1,400–1,600 kcal · Protein 85–100g · Carbs 130–160g · Fat 40–55g · Water 3–3.5L · Fibre 28–35g</div></div>
+
+  <div class="card" style="margin-bottom:12px">
+    <div style="font-size:13px;font-weight:600;color:#7c3aed;margin-bottom:8px">Weekly meal template (Indian vegetarian)</div>
+    <table class="table-simple">
+      <tr><th>Time</th><th>Meal</th><th>Protein</th><th>Anti-inflam</th></tr>
+      <tr><td>Pre-gym 7:15</td><td>Banana + 5 almonds OR papaya</td><td>3g</td><td><span class="tag tag-green">Yes</span></td></tr>
+      <tr><td>Post-gym 10:45</td><td>Moong dal chilla (2) + 200g Greek yogurt + flaxseed</td><td>28g</td><td><span class="tag tag-green">Yes</span></td></tr>
+      <tr><td>Lunch 1:30</td><td>2 roti + rajma/chole/tofu sabzi + raita + salad</td><td>22g</td><td><span class="tag tag-green">Yes</span></td></tr>
+      <tr><td>Snack 4:00</td><td>Plant protein shake + walnuts or roasted chana</td><td>20g</td><td><span class="tag tag-green">Yes</span></td></tr>
+      <tr><td>Dinner 8:00</td><td>Daliya khichdi / vegetable soup + paneer 80g + salad</td><td>18g</td><td><span class="tag tag-green">Yes</span></td></tr>
+    </table>
+  </div>
+
+  <div class="grid-2">
+    <div class="card"><div style="font-size:12px;font-weight:600;color:#16a34a;margin-bottom:6px">Anti-inflammation MUST eat daily</div>
+      <ul class="checklist">
+        <li><i class="ti ti-leaf" style="color:#16a34a"></i>Turmeric 1 tsp warm water (morning)</li>
+        <li><i class="ti ti-leaf" style="color:#16a34a"></i>Fresh ginger in meals</li>
+        <li><i class="ti ti-leaf" style="color:#16a34a"></i>Ground flaxseed 1 tbsp in yogurt</li>
+        <li><i class="ti ti-leaf" style="color:#16a34a"></i>Walnuts 6–8 daily</li>
+        <li><i class="ti ti-leaf" style="color:#16a34a"></i>Amla / Indian gooseberry</li>
+        <li><i class="ti ti-leaf" style="color:#16a34a"></i>Spinach, methi, moringa</li>
+      </ul>
+    </div>
+    <div class="card"><div style="font-size:12px;font-weight:600;color:#dc2626;margin-bottom:6px">AVOID / drastically reduce</div>
+      <ul class="checklist">
+        <li><i class="ti ti-ban" style="color:#dc2626"></i>Refined sugar & maida</li>
+        <li><i class="ti ti-ban" style="color:#dc2626"></i>Fried foods daily</li>
+        <li><i class="ti ti-ban" style="color:#dc2626"></i>Processed snacks</li>
+        <li><i class="ti ti-ban" style="color:#dc2626"></i>Paneer excess (max 100g/day)</li>
+        <li><i class="ti ti-ban" style="color:#dc2626"></i>Tea/coffee: max 1 cup, after 8 AM</li>
+        <li><i class="ti ti-ban" style="color:#dc2626"></i>Eating after 8:30 PM</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section-title"><i class="ti ti-pill"></i> Supplements</div>
+  <div class="card">
+    <table class="table-simple">
+      <tr><th>Supplement</th><th>Why for you</th><th>Dose</th><th>Timing</th></tr>
+      <tr><td>Vitamin D3 + K2</td><td>Likely deficient, immunity + weight loss</td><td>2000–4000 IU</td><td>Breakfast</td></tr>
+      <tr><td>Vitamin B12</td><td>Vegetarian deficiency risk</td><td>500–1000 mcg</td><td>Morning</td></tr>
+      <tr><td>Omega-3 algae</td><td>Anti-inflammation, hair, skin</td><td>1g EPA+DHA</td><td>With meals</td></tr>
+      <tr><td>Magnesium glycinate</td><td>Sleep, stress, muscle cramps</td><td>300–400 mg</td><td>Bedtime</td></tr>
+      <tr><td>Iron bisglycinate</td><td>Low hematocrit</td><td>Per doctor</td><td>Empty stomach</td></tr>
+      <tr><td>Collagen peptides</td><td>Skin, joints, hair</td><td>10g powder</td><td>Post-workout</td></tr>
+      <tr><td>Biotin</td><td>Hair growth & thickness</td><td>2500 mcg</td><td>Morning</td></tr>
+    </table>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════ WORKOUT ══════════════ -->
+<div class="page" id="page-workout">
+<div class="tab-content-inner">
+  <div class="section-title"><i class="ti ti-barbell"></i> Weekly workout plan</div>
+  <div class="alert-box alert-yellow"><i class="ti ti-alert-triangle alert-icon" style="color:#b45309"></i><div><strong>Knee protocol:</strong> No deep squats, no jumping, no heavy leg press. Always do 8-min knee warm-up first. Stop if pain exceeds 3/10.</div></div>
+
+  <div class="card" style="margin-bottom:12px">
+    <table class="table-simple">
+      <tr><th>Day</th><th>Focus</th><th>Knee load</th><th>Duration</th></tr>
+      <tr><td><strong>Monday</strong></td><td>Glutes + lower body (knee-safe)</td><td><span class="tag tag-green">Low</span></td><td>60 min gym + 15 min ring</td></tr>
+      <tr><td><strong>Tuesday</strong></td><td>Upper body: arms, shoulders, back</td><td><span class="tag tag-green">Zero</span></td><td>60 min gym</td></tr>
+      <tr><td><strong>Wednesday</strong></td><td>Pilates ring + mobility + posture</td><td><span class="tag tag-green">Low</span></td><td>45 min home</td></tr>
+      <tr><td><strong>Thursday</strong></td><td>Core + waist sculpting</td><td><span class="tag tag-green">Low</span></td><td>60 min gym</td></tr>
+      <tr><td><strong>Friday</strong></td><td>Full body toning + low-impact cardio</td><td><span class="tag tag-yellow">Moderate</span></td><td>75 min gym</td></tr>
+      <tr><td><strong>Saturday</strong></td><td>Active recovery: walk + stretch</td><td><span class="tag tag-green">Zero</span></td><td>30 min walk + 20 stretch</td></tr>
+      <tr><td><strong>Sunday</strong></td><td>Rest or gentle yoga</td><td><span class="tag tag-green">Zero</span></td><td>Optional 20 min yoga</td></tr>
+    </table>
+  </div>
+
+  <div class="grid-2">
+    <div class="card"><div style="font-size:12px;font-weight:600;color:#7c3aed;margin-bottom:6px">Monday: Glutes & lower body</div>
+      <ul class="checklist">
+        <li><i class="ti ti-point-filled" style="color:#7c3aed"></i>Glute bridges 4×15 (add band)</li>
+        <li><i class="ti ti-point-filled" style="color:#7c3aed"></i>Hip thrusts on bench 3×12</li>
+        <li><i class="ti ti-point-filled" style="color:#7c3aed"></i>Cable kickbacks 3×15 each</li>
+        <li><i class="ti ti-point-filled" style="color:#7c3aed"></i>Lateral band walks 3×20</li>
+        <li><i class="ti ti-point-filled" style="color:#7c3aed"></i>Sumo deadlift (light) 3×10</li>
+        <li><i class="ti ti-point-filled" style="color:#7c3aed"></i>Pilates ring inner thigh 3×20</li>
+      </ul>
+    </div>
+    <div class="card"><div style="font-size:12px;font-weight:600;color:#7c3aed;margin-bottom:6px">Tuesday: Arms, shoulders, back</div>
+      <ul class="checklist">
+        <li><i class="ti ti-point-filled" style="color:#7c3aed"></i>DB shoulder press 3×12</li>
+        <li><i class="ti ti-point-filled" style="color:#7c3aed"></i>Lateral raises 3×15</li>
+        <li><i class="ti ti-point-filled" style="color:#7c3aed"></i>Bicep curls 3×12</li>
+        <li><i class="ti ti-point-filled" style="color:#7c3aed"></i>Tricep pushdowns 3×12</li>
+        <li><i class="ti ti-point-filled" style="color:#7c3aed"></i>Seated row 3×12</li>
+        <li><i class="ti ti-point-filled" style="color:#7c3aed"></i>Face pulls (posture) 3×15</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section-title"><i class="ti ti-yoga"></i> Daily knee strengthening (8 min — do before every workout)</div>
+  <div class="card">
+    <ul class="checklist">
+      <li><i class="ti ti-number-1" style="color:#7c3aed"></i>Straight leg raises lying: 3×15 each leg</li>
+      <li><i class="ti ti-number-2" style="color:#7c3aed"></i>Quad sets isometric: 3×30 sec hold</li>
+      <li><i class="ti ti-number-3" style="color:#7c3aed"></i>Clamshells with band: 2×20</li>
+      <li><i class="ti ti-number-4" style="color:#7c3aed"></i>Terminal knee extension: 3×15</li>
+      <li><i class="ti ti-number-5" style="color:#7c3aed"></i>Short arc squats (0–30° range only): 3×12</li>
+    </ul>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════ RECOVERY ══════════════ -->
+<div class="page" id="page-recovery">
+<div class="tab-content-inner">
+  <div class="section-title"><i class="ti ti-moon"></i> Recovery & Ultrahuman ring</div>
+  <div class="grid-2">
+    <div class="card">
+      <div style="font-size:13px;font-weight:600;color:#7c3aed;margin-bottom:8px">Log Ultrahuman scores</div>
+      <div class="input-row"><label>Recovery score</label><input type="range" min="0" max="100" value="70" id="r-recovery" oninput="upd('v-rec',this.value+'%')"><span class="val" id="v-rec">70%</span></div>
+      <div class="input-row"><label>Sleep score</label><input type="range" min="0" max="100" value="70" id="r-sleep" oninput="upd('v-slp',this.value+'%')"><span class="val" id="v-slp">70%</span></div>
+      <div class="input-row"><label>HRV (ms)</label><input type="number" id="r-hrv" placeholder="45" style="width:70px"><span style="font-size:11px;color:#888;margin-left:4px">ms</span></div>
+      <div class="input-row"><label>Resting HR</label><input type="number" id="r-rhr" placeholder="68" style="width:70px"><span style="font-size:11px;color:#888;margin-left:4px">bpm</span></div>
+      <div class="input-row"><label>Steps today</label><input type="number" id="r-steps" placeholder="8000" style="width:90px"></div>
+      <button class="btn btn-primary" style="margin-top:8px;width:100%" onclick="assessRecovery()">Get today's recommendation ↗</button>
+    </div>
+    <div class="card" id="recovery-advice" style="min-height:180px">
+      <div style="font-size:13px;font-weight:600;color:#7c3aed;margin-bottom:6px">Today's recommendation</div>
+      <div style="font-size:12.5px;color:#555">Enter your Ultrahuman scores and tap the button to get a personalised workout and nutrition recommendation.</div>
+    </div>
+  </div>
+
+  <div class="section-title"><i class="ti ti-bed"></i> Sleep optimisation</div>
+  <div class="grid-2">
+    <div class="card"><div style="font-size:12px;font-weight:600;margin-bottom:6px">Wind-down routine (9:30 PM)</div>
+      <ul class="checklist">
+        <li><i class="ti ti-point-filled" style="color:#7c3aed"></i>Dim lights, no blue screens</li>
+        <li><i class="ti ti-point-filled" style="color:#7c3aed"></i>Warm shower or foot soak</li>
+        <li><i class="ti ti-point-filled" style="color:#7c3aed"></i>Magnesium glycinate 300 mg</li>
+        <li><i class="ti ti-point-filled" style="color:#7c3aed"></i>4-7-8 breathing (5 cycles)</li>
+        <li><i class="ti ti-point-filled" style="color:#7c3aed"></i>Room temp 22–24°C</li>
+      </ul>
+    </div>
+    <div class="card"><div style="font-size:12px;font-weight:600;margin-bottom:6px">Caffeine rules</div>
+      <ul class="checklist">
+        <li><i class="ti ti-clock" style="color:#d97706"></i>Last coffee/tea: before 1 PM</li>
+        <li><i class="ti ti-clock" style="color:#d97706"></i>First tea: not before 8 AM</li>
+        <li><i class="ti ti-clock" style="color:#d97706"></i>Max 1 cup daily (tapering from 2–3)</li>
+        <li><i class="ti ti-clock" style="color:#d97706"></i>Evening: chamomile or turmeric latte</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section-title"><i class="ti ti-lungs"></i> Breathwork</div>
+  <div class="grid-3">
+    <div class="card"><div style="font-size:12px;font-weight:600;margin-bottom:5px">Morning (6 AM)</div><div style="font-size:12px;color:#555">4-7-8 breathing: inhale 4, hold 7, exhale 8. Repeat 5×. Reduces cortisol spike.</div></div>
+    <div class="card"><div style="font-size:12px;font-weight:600;margin-bottom:5px">Post-workout</div><div style="font-size:12px;color:#555">Box breathing: 4-4-4-4. 5 min. Lowers cortisol, aids muscle recovery.</div></div>
+    <div class="card"><div style="font-size:12px;font-weight:600;margin-bottom:5px">Bedtime</div><div style="font-size:12px;color:#555">Progressive muscle relaxation: tense + release each group. 10 min. Improves deep sleep.</div></div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════ SKIN & HAIR ══════════════ -->
+<div class="page" id="page-skin">
+<div class="tab-content-inner">
+  <div class="section-title"><i class="ti ti-sparkles"></i> Skin glow protocol</div>
+  <div class="grid-2">
+    <div class="card"><div style="font-size:12px;font-weight:600;color:#7c3aed;margin-bottom:6px">Morning routine (5–7 min)</div>
+      <ul class="checklist">
+        <li><i class="ti ti-number-1" style="color:#7c3aed"></i>Gentle cleanser</li>
+        <li><i class="ti ti-number-2" style="color:#7c3aed"></i>Vitamin C serum (pigmentation)</li>
+        <li><i class="ti ti-number-3" style="color:#7c3aed"></i>Niacinamide serum (dullness)</li>
+        <li><i class="ti ti-number-4" style="color:#7c3aed"></i>Hyaluronic acid moisturiser</li>
+        <li><i class="ti ti-number-5" style="color:#7c3aed"></i>SPF 50+ sunscreen</li>
+        <li><i class="ti ti-number-6" style="color:#7c3aed"></i>Gua sha face massage 2 min</li>
+      </ul>
+    </div>
+    <div class="card"><div style="font-size:12px;font-weight:600;color:#7c3aed;margin-bottom:6px">Night routine</div>
+      <ul class="checklist">
+        <li><i class="ti ti-number-1" style="color:#7c3aed"></i>Double cleanse (oil + water)</li>
+        <li><i class="ti ti-number-2" style="color:#7c3aed"></i>Retinol 0.025% (Mon/Wed/Fri)</li>
+        <li><i class="ti ti-number-3" style="color:#7c3aed"></i>Peptide serum (other days)</li>
+        <li><i class="ti ti-number-4" style="color:#7c3aed"></i>Eye cream with caffeine</li>
+        <li><i class="ti ti-number-5" style="color:#7c3aed"></i>Rich night moisturiser</li>
+        <li><i class="ti ti-number-6" style="color:#7c3aed"></i>Ice roller 5 min (depuffing)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section-title"><i class="ti ti-wash"></i> Hair protocol</div>
+  <div class="grid-2">
+    <div class="card"><div style="font-size:12px;font-weight:600;color:#7c3aed;margin-bottom:6px">Scalp & hair routine</div>
+      <ul class="checklist">
+        <li><i class="ti ti-point-filled" style="color:#7c3aed"></i>Rosemary + coconut oil scalp massage 5 min · 3×/week</li>
+        <li><i class="ti ti-point-filled" style="color:#7c3aed"></i>Bhringraj + amla hot oil treatment · weekly</li>
+        <li><i class="ti ti-point-filled" style="color:#7c3aed"></i>Onion juice scalp treatment · 2×/week</li>
+        <li><i class="ti ti-point-filled" style="color:#7c3aed"></i>Silk pillowcase</li>
+        <li><i class="ti ti-point-filled" style="color:#7c3aed"></i>Sulphate-free shampoo max 2×/week</li>
+      </ul>
+    </div>
+    <div class="card"><div style="font-size:12px;font-weight:600;color:#7c3aed;margin-bottom:6px">Anti-greying nutrition</div>
+      <ul class="checklist">
+        <li><i class="ti ti-leaf" style="color:#16a34a"></i>Copper-rich: sesame, sunflower seeds</li>
+        <li><i class="ti ti-leaf" style="color:#16a34a"></i>Catalase: garlic, cauliflower</li>
+        <li><i class="ti ti-leaf" style="color:#16a34a"></i>B12 supplement (grey hair = B12 deficiency)</li>
+        <li><i class="ti ti-leaf" style="color:#16a34a"></i>Amla 1 daily</li>
+        <li><i class="ti ti-leaf" style="color:#16a34a"></i>Stress reduction (stress = premature grey)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section-title"><i class="ti ti-face-id"></i> Face depuffing & jawline (5 min daily)</div>
+  <div class="card">
+    <ul class="checklist">
+      <li><i class="ti ti-number-1" style="color:#7c3aed"></i>Ice cold water face splash ×10 (constricts vessels)</li>
+      <li><i class="ti ti-number-2" style="color:#7c3aed"></i>Gua sha neck-to-jaw drain: 30 strokes each side</li>
+      <li><i class="ti ti-number-3" style="color:#7c3aed"></i>Mewing posture throughout day</li>
+      <li><i class="ti ti-number-4" style="color:#7c3aed"></i>Chin-to-chest stretch: 10 sec ×5</li>
+      <li><i class="ti ti-number-5" style="color:#7c3aed"></i>Jaw open-close exercises ×20</li>
+    </ul>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════ WEEKLY LOG ══════════════ -->
+<div class="page" id="page-weekly">
+<div class="tab-content-inner">
+  <div class="section-title"><i class="ti ti-notes"></i> Weekly check-in</div>
+  <div class="week-selector">
+    <label style="font-size:12px;color:#555">Week:</label>
+    <select id="week-select-log" onchange="loadWeekLog()">
+      <option value="w1">Week 1 — May 23</option><option value="w2">Week 2 — May 30</option>
+      <option value="w3">Week 3 — Jun 6</option><option value="w4">Week 4 — Jun 13</option>
+      <option value="w5">Week 5 — Jun 20</option><option value="w6">Week 6 — Jun 27</option>
+      <option value="w7">Week 7 — Jul 4</option><option value="w8">Week 8 — Jul 11</option>
+    </select>
+  </div>
+
+  <div class="card" style="margin-bottom:12px">
+    <div style="font-size:13px;font-weight:600;color:#7c3aed;margin-bottom:8px">Reflection log</div>
+    <div style="margin-bottom:8px"><label style="font-size:12px;color:#555;display:block;margin-bottom:4px">What went well this week?</label><textarea id="log-wins" placeholder="e.g. Did all 5 workouts, drank 3L water daily, felt more energetic..."></textarea></div>
+    <div style="margin-bottom:8px"><label style="font-size:12px;color:#555;display:block;margin-bottom:4px">What was challenging?</label><textarea id="log-challenges" placeholder="e.g. Knee pain on Thursday, craved sugar at night..."></textarea></div>
+    <div style="margin-bottom:8px"><label style="font-size:12px;color:#555;display:block;margin-bottom:4px">Menstrual cycle notes</label>
+      <div style="margin-bottom:6px" id="cycle-chips">
+        <span class="period-chip" onclick="toggleCycle(this)">Period day 1</span><span class="period-chip" onclick="toggleCycle(this)">Period day 2</span><span class="period-chip" onclick="toggleCycle(this)">Ovulation week</span><span class="period-chip" onclick="toggleCycle(this)">PMS week</span><span class="period-chip" onclick="toggleCycle(this)">Bloating</span><span class="period-chip" onclick="toggleCycle(this)">Cramps</span><span class="period-chip" onclick="toggleCycle(this)">Mood swings</span>
+      </div>
+      <textarea id="log-cycle" placeholder="Additional cycle notes..." style="min-height:45px"></textarea>
+    </div>
+    <div style="margin-bottom:8px"><label style="font-size:12px;color:#555;display:block;margin-bottom:4px">Skin & hair changes noticed</label><textarea id="log-skin" placeholder="e.g. less breakouts, more shine, less hair fall..." style="min-height:45px"></textarea></div>
+    <button class="btn btn-primary" onclick="saveWeeklyLog()">Save weekly log</button>
+  </div>
+
+  <div class="section-title"><i class="ti ti-trophy"></i> Daily habit tracker</div>
+  <div class="card">
+    <div id="habit-grid"></div>
+    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-primary btn-sm" onclick="saveHabits()">Save habits</button>
+      <button class="btn btn-sm" onclick="clearHabits()">Clear this week</button>
+    </div>
+  </div>
+  <div id="weekly-save-msg" style="display:none;margin-top:10px" class="alert-box alert-green"><i class="ti ti-check alert-icon" style="color:#16a34a"></i>Weekly log saved!</div>
+</div>
+</div>
+
+</div><!-- end main -->
+
+<script>
+const HABITS=['Drank 3L water','Hit protein 85g+','Gym/workout done','Pilates ring used','Anti-inflam meal','No sugar after dinner','Sleep before 10:30 PM','Morning turmeric water','Skin routine AM','Skin routine PM','Knee warm-up done','Caffeine ≤1 cup'];
+const DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const WEEKS=['w1','v2','w3','w4','w5','w6','w7','w8'];
+let habitState={};
+let charts={};
+
+/* ── Util ── */
+function upd(id,v){const e=document.getElementById(id);if(e)e.textContent=v;}
+function switchTab(tab){
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>{if(t.getAttribute('onclick')&&t.getAttribute('onclick').includes("'"+tab+"'"))t.classList.add('active');});
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  const pg=document.getElementById('page-'+tab);if(pg)pg.classList.add('active');
+  if(tab==='progress')setTimeout(()=>renderCharts(),80);
+}
+
+/* ── Body data ── */
+function saveBodyData(){
+  const w=document.getElementById('week-select').value;
+  const d={weight:document.getElementById('b-weight').value,waist:document.getElementById('b-waist').value,hips:document.getElementById('b-hips').value,bust:document.getElementById('b-bust').value,thigh:document.getElementById('b-thigh').value,arm:document.getElementById('b-arm').value,protein:document.getElementById('b-protein').value,water:document.getElementById('b-water').value,caffeine:document.getElementById('b-caffeine').value,energy:document.getElementById('s-energy').value,sleep:document.getElementById('s-sleep').value,digestion:document.getElementById('s-digestion').value,stress:document.getElementById('s-stress').value,knee:document.getElementById('s-knee').value,cravings:document.getElementById('s-cravings').value,mood:document.getElementById('s-mood').value,bloating:document.getElementById('s-bloating').value};
+  localStorage.setItem('diksha-body-'+w,JSON.stringify(d));
+  const msg=document.getElementById('body-save-msg');msg.style.display='flex';setTimeout(()=>msg.style.display='none',3000);
+}
+function loadWeek(){
+  const w=document.getElementById('week-select').value;
+  const s=localStorage.getItem('diksha-body-'+w);if(!s)return;
+  const d=JSON.parse(s);
+  ['weight','waist','hips','bust','thigh','arm','protein','water','caffeine'].forEach(k=>{const e=document.getElementById('b-'+k);if(e&&d[k])e.value=d[k];});
+  ['energy','sleep','digestion','stress','knee','cravings','mood','bloating'].forEach(k=>{const e=document.getElementById('s-'+k);if(e&&d[k]){e.value=d[k];upd('v-'+k,d[k]);}});
+}
+function getBodyData(){
+  const r={weights:[83],waists:[40],hips:[46],proteins:[],energy:[],sleep:[],stress:[],knee:[]};
+  ['w1','w2','w3','w4','w5','w6','w7','w8'].forEach(w=>{
+    const s=localStorage.getItem('diksha-body-'+w);
+    if(s){const d=JSON.parse(s);r.weights.push(parseFloat(d.weight)||null);r.waists.push(parseFloat(d.waist)||null);r.hips.push(parseFloat(d.hips)||null);r.proteins.push(parseFloat(d.protein)||null);r.energy.push(parseFloat(d.energy)||null);r.sleep.push(parseFloat(d.sleep)||null);r.stress.push(parseFloat(d.stress)||null);r.knee.push(parseFloat(d.knee)||null);}else{r.weights.push(null);r.waists.push(null);r.hips.push(null);r.proteins.push(null);r.energy.push(null);r.sleep.push(null);r.stress.push(null);r.knee.push(null);}
+  });
+  return r;
+}
+
+/* ── Charts ── */
+function mkChart(id,type,labels,datasets,opts){
+  const canvas=document.getElementById(id);if(!canvas)return;
+  if(charts[id])charts[id].destroy();
+  charts[id]=new Chart(canvas,{type,data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},...opts}});
+}
+const WK_LABELS=['Baseline','Wk1','Wk2','Wk3','Wk4','Wk5','Wk6','Wk7','Wk8'];
+const WK8=['Wk1','Wk2','Wk3','Wk4','Wk5','Wk6','Wk7','Wk8'];
+
+function renderCharts(){
+  const d=getBodyData();
+  const nullFill=arr=>arr.map(v=>v===null?NaN:v);
+
+  mkChart('chartWeight','line',WK_LABELS,[
+    {label:'Weight',data:nullFill(d.weights),borderColor:'#7c3aed',backgroundColor:'rgba(124,58,237,.08)',tension:.3,spanGaps:true,pointRadius:4,pointBackgroundColor:'#7c3aed'},
+    {label:'Target',data:[83,82.1,81.2,80.3,79.4,78.3,77.2,76.3,76],borderColor:'#c4b5fd',borderDash:[5,4],pointRadius:0,tension:.3}
+  ],{scales:{y:{min:70,max:85,ticks:{callback:v=>v+'kg',font:{size:11}},grid:{color:'#f0ede6'}},x:{grid:{color:'#f0ede6'},ticks:{font:{size:11}}}}});
+
+  mkChart('chartWaist','line',WK_LABELS,[
+    {label:'Waist',data:nullFill(d.waists),borderColor:'#ec4899',backgroundColor:'rgba(236,72,153,.08)',tension:.3,spanGaps:true,pointRadius:4,pointBackgroundColor:'#ec4899'},
+    {label:'Target',data:[40,39.5,39,38.5,38,37.5,37,36.5,36],borderColor:'#f9a8d4',borderDash:[5,4],pointRadius:0,tension:.3}
+  ],{scales:{y:{min:34,max:42,ticks:{callback:v=>v+'"',font:{size:11}},grid:{color:'#f0ede6'}},x:{grid:{color:'#f0ede6'},ticks:{font:{size:11}}}}});
+
+  mkChart('chartHips','line',WK_LABELS,[
+    {label:'Hips',data:nullFill(d.hips),borderColor:'#f59e0b',backgroundColor:'rgba(245,158,11,.08)',tension:.3,spanGaps:true,pointRadius:4,pointBackgroundColor:'#f59e0b'},
+    {label:'Target',data:[46,45.7,45.4,45.1,44.8,44.5,44.2,43.9,43.5],borderColor:'#fcd34d',borderDash:[5,4],pointRadius:0,tension:.3}
+  ],{scales:{y:{min:42,max:48,ticks:{callback:v=>v+'"',font:{size:11}},grid:{color:'#f0ede6'}},x:{grid:{color:'#f0ede6'},ticks:{font:{size:11}}}}});
+
+  mkChart('chartWellness','line',WK8,[
+    {label:'Energy',data:nullFill(d.energy),borderColor:'#16a34a',tension:.3,spanGaps:true,pointRadius:3},
+    {label:'Sleep',data:nullFill(d.sleep),borderColor:'#7c3aed',tension:.3,spanGaps:true,pointRadius:3},
+    {label:'Stress',data:nullFill(d.stress),borderColor:'#dc2626',tension:.3,spanGaps:true,pointRadius:3},
+    {label:'Knee pain',data:nullFill(d.knee),borderColor:'#d97706',tension:.3,spanGaps:true,pointRadius:3}
+  ],{scales:{y:{min:0,max:10,ticks:{font:{size:11}},grid:{color:'#f0ede6'}},x:{grid:{color:'#f0ede6'},ticks:{font:{size:11}}}}});
+
+  const crpData=[18.8,null,null,null,8.22,null,null,null,null];
+  mkChart('chartCRP','line',WK_LABELS,[
+    {label:'CRP',data:crpData,borderColor:'#dc2626',backgroundColor:'rgba(220,38,38,.1)',tension:.3,spanGaps:false,pointRadius:5,pointBackgroundColor:'#dc2626'},
+    {label:'Safe',data:[5,5,5,5,5,5,5,5,5],borderColor:'#16a34a',borderDash:[4,4],pointRadius:0}
+  ],{scales:{y:{min:0,max:22,ticks:{callback:v=>v+' mg/L',font:{size:10}},grid:{color:'#f0ede6'}},x:{grid:{color:'#f0ede6'},ticks:{font:{size:11}}}}});
+
+  mkChart('chartProtein','bar',WK8,[
+    {label:'Protein',data:nullFill(d.proteins),backgroundColor:'rgba(168,85,247,.7)',borderRadius:4},
+    {label:'Target',data:[85,85,85,85,85,85,85,85],backgroundColor:'transparent',borderColor:'#c4b5fd',borderWidth:1.5,type:'line',pointRadius:0}
+  ],{scales:{y:{min:0,max:120,ticks:{callback:v=>v+'g',font:{size:11}},grid:{color:'#f0ede6'}},x:{grid:{display:false},ticks:{font:{size:11}}}}});
+
+  const habitPct=WK8.map((_,i)=>{
+    const w='w'+(i+1);const saved=localStorage.getItem('diksha-habits-'+w);
+    if(!saved)return 0;
+    const s=JSON.parse(saved);const total=HABITS.length*7;const done=Object.values(s).filter(Boolean).length;
+    return Math.round((done/total)*100);
+  });
+  mkChart('chartHabits','bar',WK8,[{label:'Habit %',data:habitPct,backgroundColor:habitPct.map(v=>v>=70?'#16a34a':v>=40?'#d97706':'#dc2626'),borderRadius:4}],{scales:{y:{min:0,max:100,ticks:{callback:v=>v+'%',font:{size:11}},grid:{color:'#f0ede6'}},x:{grid:{display:false},ticks:{font:{size:11}}}}});
+}
+function refreshCharts(){switchTab('progress');}
+
+/* ── Recovery ── */
+function assessRecovery(){
+  const rec=parseInt(document.getElementById('r-recovery').value);
+  const slp=parseInt(document.getElementById('r-sleep').value);
+  let cls,txt;
+  if(rec<50||slp<50){cls='alert-red';txt='<strong>Low recovery day.</strong> Swap gym for 20 min gentle yoga + 30 min walk. Focus on anti-inflammatory meals (khichdi, turmeric soup). Magnesium tonight. Sleep by 10 PM.';}
+  else if(rec<70||slp<70){cls='alert-yellow';txt='<strong>Moderate recovery.</strong> Do your planned workout, reduce weights by 20%, skip HIIT. Add 15 min extra stretching. Electrolyte water.';}
+  else{cls='alert-green';txt='<strong>Great recovery!</strong> Body is ready. Push today\'s workout fully — good day for progressive overload. Try slightly heavier weights on compound lifts.';}
+  document.getElementById('recovery-advice').innerHTML='<div style="font-size:13px;font-weight:600;color:#7c3aed;margin-bottom:8px">Today\'s recommendation</div><div class="alert-box '+cls+'" style="margin:0"><div style="font-size:12.5px">'+txt+'</div></div><div style="margin-top:8px;font-size:11px;color:#888">Recovery: '+rec+'% · Sleep: '+slp+'%</div>';
+}
+
+/* ── Habits ── */
+function buildHabitGrid(){
+  const w=document.getElementById('week-select-log')?.value||'w1';
+  const saved=localStorage.getItem('diksha-habits-'+w);
+  if(saved)habitState=JSON.parse(saved);else habitState={};
+  const g=document.getElementById('habit-grid');if(!g)return;g.innerHTML='';
+  HABITS.forEach(h=>{
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;gap:5px;padding:5px 0;border-bottom:1px solid #f0ede6;flex-wrap:wrap';
+    const lbl=document.createElement('span');lbl.style.cssText='font-size:11.5px;color:#444;width:180px;flex-shrink:0';lbl.textContent=h;row.appendChild(lbl);
+    DAYS.forEach(d=>{
+      const key=h+'|'+d;const pill=document.createElement('span');
+      pill.className='day-pill'+(habitState[key]?' active':'');pill.textContent=d;
+      pill.onclick=()=>{habitState[key]=!habitState[key];pill.className='day-pill'+(habitState[key]?' active':'');};
+      row.appendChild(pill);
+    });g.appendChild(row);
+  });
+}
+function saveHabits(){
+  const w=document.getElementById('week-select-log')?.value||'w1';
+  localStorage.setItem('diksha-habits-'+w,JSON.stringify(habitState));
+  showFlash('weekly-save-msg');
+}
+function clearHabits(){habitState={};buildHabitGrid();}
+function toggleCycle(el){el.classList.toggle('active');}
+function loadWeekLog(){buildHabitGrid();}
+
+/* ── Weekly log ── */
+function saveWeeklyLog(){
+  const w=document.getElementById('week-select-log')?.value||'w1';
+  const d={wins:document.getElementById('log-wins').value,challenges:document.getElementById('log-challenges').value,cycle:document.getElementById('log-cycle').value,skin:document.getElementById('log-skin').value,ts:new Date().toISOString()};
+  localStorage.setItem('diksha-weeklog-'+w,JSON.stringify(d));saveHabits();showFlash('weekly-save-msg');
+}
+function showFlash(id){const e=document.getElementById(id);if(e){e.style.display='flex';setTimeout(()=>e.style.display='none',3000);}}
+
+/* ── Chip selection ── */
+document.addEventListener('click',e=>{
+  const chip=e.target.closest('.pref-chip');if(!chip)return;
+  const group=chip.dataset.group;if(!group)return;
+  document.querySelectorAll('.pref-chip[data-group="'+group+'"]').forEach(c=>c.classList.remove('active'));
+  chip.classList.add('active');
+});
+
+/* ── AI Meal Planner ── */
+function getSelectedChip(group){const c=document.querySelector('.pref-chip.active[data-group="'+group+'"]');return c?c.textContent:'';}
+
+async function generateMealPlan(){
+  const btn=document.getElementById('gen-btn');
+  const output=document.getElementById('meal-output');
+  const area=document.getElementById('meal-result-area');
+  area.style.display='block';
+  output.innerHTML='<span class="spinner"></span> Generating your personalised meal plan...';
+  btn.disabled=true;btn.textContent='Generating...';
+
+  const planType=getSelectedChip('plan');
+  const focus=getSelectedChip('focus');
+  const cal=getSelectedChip('cal');
+  const avoid=document.getElementById('avoid-input').value;
+
+  const systemPrompt=`You are an elite Indian vegetarian nutritionist and transformation coach creating personalised meal plans. 
+Your client profile:
+- Female, 39, 5'4", 83 kg, pear-shaped body
+- Pure vegetarian (no eggs, no meat, no fish)
+- Goals: fat loss, waist reduction, toned body, glowing skin, healthy hair, anti-aging
+- Health issues: elevated CRP (8.22 mg/L, was 18.8), ESR 70 mm/hr (high inflammation), left knee pain, low AMH (perimenopause watch), low hematocrit, stress & sleep issues
+- Lifestyle: busy Indian mom, gym 8:30–10:30 AM, post-workout breakfast, lunch 1:30 PM, dinner 8 PM
+- Allergies/dislikes: none specified
+- Uses plant-based protein powder, has 2–3 teas/coffee (reducing to 1)
+Format every meal plan with:
+- Exact food items with gram weights or cup measures
+- Protein content per meal
+- Anti-inflammatory rating (★★★ = excellent, ★★ = good, ★ = neutral)
+- Total daily macros at end
+- 2–3 practical tips specific to her situation
+Use Indian foods: dal, sabzi, roti, khichdi, paneer, tofu, sprouts, moong, rajma, chole, dahi, chaas, poha, idli, upma etc.
+Be specific, practical, and motivating. No markdown headers with #. Use bold for meal names.`;
+
+  const userMsg=`Create a ${planType} for me with focus on: ${focus}. Calorie range: ${cal}.${avoid?` Please avoid/note: ${avoid}.`:''} Make it practical for a busy Indian vegetarian mom who cooks for family.`;
+
+  try{
+    const res=await fetch('/.netlify/functions/claude',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({system:systemPrompt,messages:[{role:'user',content:userMsg}]})
+    });
+    const data=await res.json();
+    if(data.content&&data.content[0]){
+      const text=data.content[0].text;
+      output.innerHTML=formatMealOutput(text);
+    }else{
+      output.innerHTML='<span style="color:#dc2626">Could not generate plan. Please check your API connection and try again.</span>';
+    }
+  }catch(err){
+    output.innerHTML='<span style="color:#dc2626">Network error. Ensure you\'re connected and the Anthropic API is reachable. Error: '+err.message+'</span>';
+  }
+  btn.disabled=false;btn.innerHTML='<i class="ti ti-wand" style="margin-right:6px"></i>Generate my personalised meal plan ↗';
+}
+
+function formatMealOutput(text){
+  return text
+    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\n\n/g,'<br><br>')
+    .replace(/\n/g,'<br>')
+    .replace(/★★★/g,'<span style="color:#16a34a">★★★</span>')
+    .replace(/★★(?!★)/g,'<span style="color:#d97706">★★</span>')
+    .replace(/★(?!★)/g,'<span style="color:#888">★</span>');
+}
+
+function copyMealPlan(){
+  const text=document.getElementById('meal-output').innerText;
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn=event.target.closest('button');const orig=btn.innerHTML;btn.innerHTML='<i class="ti ti-check" style="font-size:12px"></i> Copied!';
+    setTimeout(()=>btn.innerHTML=orig,2000);
+  });
+}
+function saveMealPlan(){
+  const text=document.getElementById('meal-output').innerText;if(!text||text.length<10)return;
+  const plans=JSON.parse(localStorage.getItem('diksha-saved-meals')||'[]');
+  plans.unshift({text,date:new Date().toLocaleDateString('en-IN'),plan:getSelectedChip('plan'),focus:getSelectedChip('focus')});
+  if(plans.length>10)plans.pop();
+  localStorage.setItem('diksha-saved-meals',JSON.stringify(plans));
+  renderSavedMeals();
+}
+function renderSavedMeals(){
+  const plans=JSON.parse(localStorage.getItem('diksha-saved-meals')||'[]');
+  const area=document.getElementById('saved-meals-area');
+  const list=document.getElementById('saved-meals-list');
+  if(!plans.length){area.style.display='none';return;}
+  area.style.display='block';
+  list.innerHTML=plans.map((p,i)=>`<div class="card" style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="font-size:12px;font-weight:600;color:#7c3aed">${p.plan} — ${p.focus} <span style="color:#aaa;font-weight:400">${p.date}</span></div><button class="btn btn-sm" onclick="deleteMeal(${i})"><i class="ti ti-trash" style="font-size:12px"></i></button></div><div style="font-size:12px;color:#555;max-height:60px;overflow:hidden">${p.text.substring(0,200)}...</div><button class="btn btn-sm" style="margin-top:6px" onclick="expandMeal(${i})">View full plan</button></div>`).join('');
+}
+function deleteMeal(i){const p=JSON.parse(localStorage.getItem('diksha-saved-meals')||'[]');p.splice(i,1);localStorage.setItem('diksha-saved-meals',JSON.stringify(p));renderSavedMeals();}
+function expandMeal(i){const p=JSON.parse(localStorage.getItem('diksha-saved-meals')||'[]');document.getElementById('meal-output').innerHTML=formatMealOutput(p[i].text);document.getElementById('meal-result-area').style.display='block';window.scrollTo({top:0,behavior:'smooth'});}
+
+/* ── Init ── */
+window.onload=()=>{
+  buildHabitGrid();
+  renderSavedMeals();
+};
+</script>
+</body>
+</html>

@@ -106,6 +106,15 @@ select{border:1px solid #d4d2cb;border-radius:8px;padding:6px 10px;font-size:13p
 
 .tab-content-inner{animation:fadeIn .2s ease}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.wave-bar{width:4px;height:16px;background:#7c3aed;border-radius:2px;animation:wave .7s infinite ease-in-out}
+.wave-bar:nth-child(1){animation-delay:0s}
+.wave-bar:nth-child(2){animation-delay:.1s}
+.wave-bar:nth-child(3){animation-delay:.2s}
+.wave-bar:nth-child(4){animation-delay:.3s}
+.wave-bar:nth-child(5){animation-delay:.4s}
+@keyframes wave{0%,100%{transform:scaleY(1)}50%{transform:scaleY(2.2)}}
+.score-circle{width:64px;height:64px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0}
+.food-tag{display:inline-block;padding:3px 9px;border-radius:12px;font-size:11px;font-weight:500;margin:2px;background:#f0eeff;color:#6d28d9}
 </style>
 </head>
 <body>
@@ -116,7 +125,7 @@ select{border:1px solid #d4d2cb;border-radius:8px;padding:6px 10px;font-size:13p
   <div class="nav-tab" onclick="switchTab('progress')"><i class="ti ti-chart-line" style="font-size:13px"></i> Progress</div>
   <div class="nav-tab" onclick="switchTab('blood')"><i class="ti ti-droplet" style="font-size:13px"></i> Blood</div>
   <div class="nav-tab" onclick="switchTab('body')"><i class="ti ti-ruler" style="font-size:13px"></i> Body Log</div>
-  <div class="nav-tab" onclick="switchTab('meal')"><i class="ti ti-chef-hat" style="font-size:13px"></i> AI Meals</div>
+  <div class="nav-tab" onclick="switchTab('meal')"><i class="ti ti-microphone" style="font-size:13px"></i> Meal Diary</div>
   <div class="nav-tab" onclick="switchTab('nutrition')"><i class="ti ti-salad" style="font-size:13px"></i> Nutrition</div>
   <div class="nav-tab" onclick="switchTab('workout')"><i class="ti ti-barbell" style="font-size:13px"></i> Workout</div>
   <div class="nav-tab" onclick="switchTab('recovery')"><i class="ti ti-moon" style="font-size:13px"></i> Recovery</div>
@@ -353,94 +362,95 @@ select{border:1px solid #d4d2cb;border-radius:8px;padding:6px 10px;font-size:13p
 </div>
 </div>
 
-<!-- ══════════════ AI MEAL PLANNER ══════════════ -->
+<!-- ══════════════ VOICE MEAL LOGGER ══════════════ -->
 <div class="page" id="page-meal">
 <div class="tab-content-inner">
-  <div class="section-title"><i class="ti ti-chef-hat"></i> AI Indian vegetarian meal planner</div>
-  <div class="alert-box alert-purple"><i class="ti ti-robot alert-icon" style="color:#7c3aed"></i><div>Powered by Claude AI. Your health profile (83 kg, pear-shape, inflammation, vegetarian, knee pain, hormone health) is built into every meal plan generated.</div></div>
+  <div class="section-title"><i class="ti ti-microphone"></i> Voice meal diary</div>
+  <div class="alert-box alert-purple"><i class="ti ti-info-circle alert-icon" style="color:#7c3aed"></i><div>Speak your meals in <strong>Hindi, English or Hinglish</strong> — the app transcribes, detects Indian foods, and scores your day against your health targets. 100% free, no API needed.</div></div>
 
+  <!-- DATE + MEAL SELECTOR -->
   <div class="card" style="margin-bottom:12px">
-    <div style="font-size:13px;font-weight:600;color:#7c3aed;margin-bottom:10px">Customise your meal plan</div>
-    
-    <div style="margin-bottom:12px">
-      <div style="font-size:12px;color:#555;margin-bottom:5px;font-weight:500">Plan type</div>
-      <div id="plan-type">
-        <span class="pref-chip active" data-group="plan">Full day plan</span>
-        <span class="pref-chip" data-group="plan">Post-workout meal</span>
-        <span class="pref-chip" data-group="plan">Anti-inflammatory day</span>
-        <span class="pref-chip" data-group="plan">High-protein day</span>
-        <span class="pref-chip" data-group="plan">Gut healing plan</span>
-        <span class="pref-chip" data-group="plan">Festival / eating-out guide</span>
-        <span class="pref-chip" data-group="plan">7-day weekly plan</span>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
+      <div>
+        <div style="font-size:11px;color:#888;margin-bottom:3px">Date</div>
+        <input type="date" id="meal-date" style="padding:6px 10px;border:1px solid #d4d2cb;border-radius:8px;font-size:13px;background:#fff;color:#333">
+      </div>
+      <div>
+        <div style="font-size:11px;color:#888;margin-bottom:3px">Meal</div>
+        <select id="meal-slot" style="padding:6px 10px;border:1px solid #d4d2cb;border-radius:8px;font-size:13px;background:#fff;color:#333">
+          <option value="pre_workout">Pre-workout (7:15 AM)</option>
+          <option value="breakfast" selected>Breakfast (10:45 AM)</option>
+          <option value="lunch">Lunch (1:30 PM)</option>
+          <option value="snack">Snack (4:00 PM)</option>
+          <option value="dinner">Dinner (8:00 PM)</option>
+          <option value="other">Other</option>
+        </select>
       </div>
     </div>
 
-    <div style="margin-bottom:12px">
-      <div style="font-size:12px;color:#555;margin-bottom:5px;font-weight:500">Today's focus</div>
-      <div id="focus-type">
-        <span class="pref-chip active" data-group="focus">Fat loss</span>
-        <span class="pref-chip" data-group="focus">Reduce inflammation</span>
-        <span class="pref-chip" data-group="focus">Skin glow</span>
-        <span class="pref-chip" data-group="focus">Hair health</span>
-        <span class="pref-chip" data-group="focus">Hormone balance</span>
-        <span class="pref-chip" data-group="focus">Energy boost</span>
-        <span class="pref-chip" data-group="focus">Sleep support</span>
+    <!-- VOICE RECORDER -->
+    <div style="text-align:center;padding:1.2rem 0.5rem;background:#f8f7f4;border-radius:10px;border:1px solid #e5e3dc;margin-bottom:12px">
+      <div id="voice-status" style="font-size:12px;color:#888;margin-bottom:10px">Tap the mic and speak your meal in Hindi, English or Hinglish</div>
+      <button id="mic-btn" onclick="toggleRecording()" style="width:72px;height:72px;border-radius:50%;background:#7c3aed;border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(124,58,237,.3);transition:.2s">
+        <i class="ti ti-microphone" style="font-size:28px;color:#fff"></i>
+      </button>
+      <div id="recording-wave" style="display:none;margin-top:10px">
+        <div style="display:flex;align-items:center;justify-content:center;gap:3px" id="wave-bars">
+          <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+        </div>
+        <div style="font-size:11px;color:#7c3aed;margin-top:6px">Recording... tap mic to stop</div>
       </div>
     </div>
 
-    <div style="margin-bottom:12px">
-      <div style="font-size:12px;color:#555;margin-bottom:5px;font-weight:500">Calorie range</div>
-      <div id="cal-type">
-        <span class="pref-chip active" data-group="cal">1400–1500 kcal (deficit)</span>
-        <span class="pref-chip" data-group="cal">1500–1600 kcal (moderate)</span>
-        <span class="pref-chip" data-group="cal">1600–1800 kcal (maintenance)</span>
-      </div>
+    <!-- TRANSCRIPT -->
+    <div style="margin-bottom:10px">
+      <div style="font-size:12px;color:#555;margin-bottom:4px;font-weight:500">What you said <span style="color:#888;font-weight:400">(edit if needed)</span></div>
+      <textarea id="voice-transcript" placeholder="e.g. Breakfast mein moong dal chilla khaya, saath mein ek cup dahi aur ek banana..." style="min-height:70px"></textarea>
     </div>
 
-    <div style="margin-bottom:12px">
-      <div style="font-size:12px;color:#555;margin-bottom:5px;font-weight:500">Anything to avoid today?</div>
-      <textarea id="avoid-input" placeholder="e.g. No dairy today, avoiding gluten, have guests, travelling, low on groceries..." style="min-height:50px"></textarea>
-    </div>
-
-    <button class="btn btn-primary" onclick="generateMealPlan()" id="gen-btn" style="width:100%;padding:10px;font-size:14px">
-      <i class="ti ti-wand" style="margin-right:6px"></i>Generate my personalised meal plan ↗
+    <button class="btn btn-primary" onclick="analyzeMeal()" style="width:100%;padding:9px;font-size:13px">
+      <i class="ti ti-chart-bar" style="margin-right:6px"></i>Analyse & save this meal
     </button>
   </div>
 
-  <div id="meal-result-area" style="display:none">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-      <div style="font-size:13px;font-weight:600;color:#7c3aed">Your personalised meal plan</div>
-      <div style="display:flex;gap:8px">
-        <button class="btn btn-sm" onclick="copyMealPlan()"><i class="ti ti-copy" style="font-size:12px"></i> Copy</button>
-        <button class="btn btn-sm" onclick="saveMealPlan()"><i class="ti ti-bookmark" style="font-size:12px"></i> Save</button>
-      </div>
-    </div>
-    <div class="meal-output" id="meal-output"></div>
+  <!-- ANALYSIS RESULT -->
+  <div id="meal-analysis" style="display:none;margin-bottom:12px"></div>
+
+  <!-- TODAY'S SUMMARY -->
+  <div class="section-title" style="margin-top:0.5rem"><i class="ti ti-calendar-stats"></i> Today's nutrition summary</div>
+  <div id="today-summary" class="card" style="margin-bottom:12px">
+    <div style="font-size:12.5px;color:#888;text-align:center;padding:10px">Log a meal above to see today's summary</div>
   </div>
 
-  <div id="saved-meals-area" style="margin-top:1rem;display:none">
-    <div class="section-title" style="margin-top:0"><i class="ti ti-bookmark"></i> Saved meal plans</div>
-    <div id="saved-meals-list"></div>
+  <!-- MEAL DIARY -->
+  <div class="section-title"><i class="ti ti-book"></i> Meal diary</div>
+  <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+    <input type="date" id="diary-date" style="padding:6px 10px;border:1px solid #d4d2cb;border-radius:8px;font-size:12px;background:#fff;color:#333">
+    <button class="btn btn-sm" onclick="loadDiary()">View day</button>
+    <button class="btn btn-sm" onclick="loadDiary('today')">Today</button>
+    <button class="btn btn-sm" style="color:#dc2626;border-color:#fecaca" onclick="clearDay()">Clear day</button>
+  </div>
+  <div id="diary-entries" class="card">
+    <div style="font-size:12.5px;color:#888;text-align:center;padding:10px">Select a date to view meal entries</div>
   </div>
 
-  <div class="section-title"><i class="ti ti-bulb"></i> Quick craving control & eating-out tips</div>
+  <!-- TIPS -->
+  <div class="section-title"><i class="ti ti-bulb"></i> Craving control & eating-out tips</div>
   <div class="grid-2">
-    <div class="card">
-      <div style="font-size:12px;font-weight:600;color:#7c3aed;margin-bottom:7px">Sugar craving attack?</div>
+    <div class="card"><div style="font-size:12px;font-weight:600;color:#7c3aed;margin-bottom:6px">Sugar craving attack?</div>
       <ul class="checklist">
         <li><i class="ti ti-point-filled" style="color:#7c3aed"></i>1 medjool date + 5 almonds</li>
         <li><i class="ti ti-point-filled" style="color:#7c3aed"></i>Warm turmeric + cinnamon milk</li>
         <li><i class="ti ti-point-filled" style="color:#7c3aed"></i>1 small piece dark chocolate (85%+)</li>
-        <li><i class="ti ti-point-filled" style="color:#7c3aed"></i>L-glutamine powder in water (500mg)</li>
+        <li><i class="ti ti-point-filled" style="color:#7c3aed"></i>L-glutamine in water (500mg)</li>
       </ul>
     </div>
-    <div class="card">
-      <div style="font-size:12px;font-weight:600;color:#7c3aed;margin-bottom:7px">Eating out / restaurant</div>
+    <div class="card"><div style="font-size:12px;font-weight:600;color:#7c3aed;margin-bottom:6px">Eating out?</div>
       <ul class="checklist">
-        <li><i class="ti ti-point-filled" style="color:#7c3aed"></i>Order dal, sabzi, raita before bread</li>
-        <li><i class="ti ti-point-filled" style="color:#7c3aed"></i>Skip the basket of naan — ask for 1 roti</li>
+        <li><i class="ti ti-point-filled" style="color:#7c3aed"></i>Order dal + raita before bread</li>
+        <li><i class="ti ti-point-filled" style="color:#7c3aed"></i>1 roti max, skip naan basket</li>
         <li><i class="ti ti-point-filled" style="color:#7c3aed"></i>Tandoori paneer > paneer butter masala</li>
-        <li><i class="ti ti-point-filled" style="color:#7c3aed"></i>Eat salad/soup first, slows eating</li>
+        <li><i class="ti ti-point-filled" style="color:#7c3aed"></i>Salad/soup first — slows eating</li>
       </ul>
     </div>
   </div>
@@ -855,109 +865,317 @@ function saveWeeklyLog(){
 }
 function showFlash(id){const e=document.getElementById(id);if(e){e.style.display='flex';setTimeout(()=>e.style.display='none',3000);}}
 
-/* ── Chip selection ── */
-document.addEventListener('click',e=>{
-  const chip=e.target.closest('.pref-chip');if(!chip)return;
-  const group=chip.dataset.group;if(!group)return;
-  document.querySelectorAll('.pref-chip[data-group="'+group+'"]').forEach(c=>c.classList.remove('active'));
-  chip.classList.add('active');
-});
 
-/* ── AI Meal Planner ── */
-function getSelectedChip(group){const c=document.querySelector('.pref-chip.active[data-group="'+group+'"]');return c?c.textContent:'';}
 
-async function generateMealPlan(){
-  const btn=document.getElementById('gen-btn');
-  const output=document.getElementById('meal-output');
-  const area=document.getElementById('meal-result-area');
-  area.style.display='block';
-  output.innerHTML='<span class="spinner"></span> Generating your personalised meal plan...';
-  btn.disabled=true;btn.textContent='Generating...';
+/* ══════════════ VOICE MEAL LOGGER ══════════════ */
+let recognition=null, isRecording=false;
 
-  const planType=getSelectedChip('plan');
-  const focus=getSelectedChip('focus');
-  const cal=getSelectedChip('cal');
-  const avoid=document.getElementById('avoid-input').value;
+// Indian food nutrition database (per standard serving)
+const FOOD_DB={
+  // grains
+  'roti':{cal:80,protein:3,carbs:15,fat:1,antiInflam:2,label:'Roti'},
+  'chapati':{cal:80,protein:3,carbs:15,fat:1,antiInflam:2,label:'Chapati'},
+  'rice':{cal:130,protein:3,carbs:28,fat:0.3,antiInflam:1,label:'Rice'},
+  'chawal':{cal:130,protein:3,carbs:28,fat:0.3,antiInflam:1,label:'Chawal'},
+  'poha':{cal:110,protein:2,carbs:22,fat:1,antiInflam:2,label:'Poha'},
+  'upma':{cal:150,protein:4,carbs:25,fat:4,antiInflam:2,label:'Upma'},
+  'idli':{cal:60,protein:2,carbs:12,fat:0.4,antiInflam:3,label:'Idli'},
+  'dosa':{cal:120,protein:3,carbs:20,fat:3,antiInflam:2,label:'Dosa'},
+  'paratha':{cal:180,protein:4,carbs:24,fat:7,antiInflam:1,label:'Paratha'},
+  'daliya':{cal:100,protein:4,carbs:18,fat:1,antiInflam:3,label:'Daliya'},
+  'oats':{cal:150,protein:5,carbs:27,fat:3,antiInflam:3,label:'Oats'},
+  'bread':{cal:130,protein:4,carbs:25,fat:1,antiInflam:1,label:'Bread'},
+  // protein
+  'dal':{cal:120,protein:9,carbs:18,fat:1,antiInflam:3,label:'Dal'},
+  'daal':{cal:120,protein:9,carbs:18,fat:1,antiInflam:3,label:'Dal'},
+  'paneer':{cal:160,protein:11,carbs:3,fat:12,antiInflam:2,label:'Paneer'},
+  'tofu':{cal:80,protein:9,carbs:2,fat:4,antiInflam:3,label:'Tofu'},
+  'rajma':{cal:130,protein:9,carbs:22,fat:1,antiInflam:3,label:'Rajma'},
+  'chole':{cal:140,protein:8,carbs:23,fat:2,antiInflam:3,label:'Chole'},
+  'chana':{cal:130,protein:8,carbs:22,fat:2,antiInflam:3,label:'Chana'},
+  'moong':{cal:100,protein:7,carbs:17,fat:0.5,antiInflam:3,label:'Moong'},
+  'sprouts':{cal:60,protein:5,carbs:10,fat:0.4,antiInflam:3,label:'Sprouts'},
+  'dahi':{cal:100,protein:7,carbs:8,fat:4,antiInflam:3,label:'Dahi'},
+  'yogurt':{cal:100,protein:7,carbs:8,fat:4,antiInflam:3,label:'Yogurt'},
+  'curd':{cal:100,protein:7,carbs:8,fat:4,antiInflam:3,label:'Curd'},
+  'egg':{cal:70,protein:6,carbs:0.5,fat:5,antiInflam:2,label:'Egg'},
+  'chilla':{cal:130,protein:8,carbs:18,fat:3,antiInflam:3,label:'Chilla'},
+  'besan':{cal:120,protein:7,carbs:18,fat:2,antiInflam:2,label:'Besan'},
+  'protein':{cal:120,protein:20,carbs:5,fat:2,antiInflam:2,label:'Protein shake'},
+  // vegetables
+  'sabzi':{cal:80,protein:3,carbs:10,fat:3,antiInflam:3,label:'Sabzi'},
+  'subzi':{cal:80,protein:3,carbs:10,fat:3,antiInflam:3,label:'Sabzi'},
+  'spinach':{cal:40,protein:3,carbs:5,fat:0.5,antiInflam:3,label:'Spinach'},
+  'palak':{cal:40,protein:3,carbs:5,fat:0.5,antiInflam:3,label:'Palak'},
+  'methi':{cal:50,protein:4,carbs:6,fat:0.5,antiInflam:3,label:'Methi'},
+  'salad':{cal:40,protein:2,carbs:7,fat:0.5,antiInflam:3,label:'Salad'},
+  'vegetable':{cal:70,protein:2,carbs:12,fat:1,antiInflam:3,label:'Vegetables'},
+  'bhindi':{cal:45,protein:2,carbs:8,fat:0.5,antiInflam:3,label:'Bhindi'},
+  'gobi':{cal:50,protein:2,carbs:9,fat:0.5,antiInflam:3,label:'Gobi'},
+  'aloo':{cal:90,protein:2,carbs:19,fat:0.1,antiInflam:1,label:'Aloo'},
+  'potato':{cal:90,protein:2,carbs:19,fat:0.1,antiInflam:1,label:'Potato'},
+  'tomato':{cal:20,protein:1,carbs:4,fat:0.2,antiInflam:3,label:'Tomato'},
+  'soup':{cal:80,protein:3,carbs:12,fat:2,antiInflam:3,label:'Soup'},
+  // fruits
+  'banana':{cal:90,protein:1,carbs:23,fat:0.3,antiInflam:2,label:'Banana'},
+  'kela':{cal:90,protein:1,carbs:23,fat:0.3,antiInflam:2,label:'Kela'},
+  'apple':{cal:80,protein:0.5,carbs:20,fat:0.3,antiInflam:3,label:'Apple'},
+  'papaya':{cal:60,protein:1,carbs:15,fat:0.2,antiInflam:3,label:'Papaya'},
+  'mango':{cal:100,protein:1,carbs:25,fat:0.3,antiInflam:2,label:'Mango'},
+  'aam':{cal:100,protein:1,carbs:25,fat:0.3,antiInflam:2,label:'Aam'},
+  'berries':{cal:60,protein:1,carbs:14,fat:0.4,antiInflam:3,label:'Berries'},
+  'amla':{cal:45,protein:1,carbs:10,fat:0.1,antiInflam:3,label:'Amla'},
+  // drinks & others
+  'chai':{cal:60,protein:2,carbs:8,fat:2,antiInflam:-1,label:'Chai'},
+  'tea':{cal:60,protein:2,carbs:8,fat:2,antiInflam:-1,label:'Tea'},
+  'coffee':{cal:30,protein:0.5,carbs:5,fat:0.5,antiInflam:-1,label:'Coffee'},
+  'milk':{cal:120,protein:6,carbs:12,fat:5,antiInflam:2,label:'Milk'},
+  'dudh':{cal:120,protein:6,carbs:12,fat:5,antiInflam:2,label:'Dudh'},
+  'nuts':{cal:160,protein:5,carbs:6,fat:14,antiInflam:3,label:'Nuts'},
+  'almonds':{cal:100,protein:4,carbs:4,fat:9,antiInflam:3,label:'Almonds'},
+  'badam':{cal:100,protein:4,carbs:4,fat:9,antiInflam:3,label:'Badam'},
+  'walnuts':{cal:130,protein:3,carbs:3,fat:13,antiInflam:3,label:'Walnuts'},
+  'akhrot':{cal:130,protein:3,carbs:3,fat:13,antiInflam:3,label:'Akhrot'},
+  'khichdi':{cal:180,protein:7,carbs:30,fat:3,antiInflam:3,label:'Khichdi'},
+  'raita':{cal:80,protein:4,carbs:8,fat:3,antiInflam:3,label:'Raita'},
+  'samosa':{cal:250,protein:4,carbs:30,fat:13,antiInflam:-2,label:'Samosa'},
+  'pakoda':{cal:200,protein:4,carbs:22,fat:11,antiInflam:-2,label:'Pakoda'},
+  'sweet':{cal:200,protein:2,carbs:35,fat:7,antiInflam:-2,label:'Sweet'},
+  'mithai':{cal:200,protein:2,carbs:35,fat:7,antiInflam:-2,label:'Mithai'},
+  'chocolate':{cal:150,protein:2,carbs:17,fat:9,antiInflam:1,label:'Chocolate'},
+  'flaxseed':{cal:55,protein:2,carbs:3,fat:4,antiInflam:3,label:'Flaxseed'},
+  'turmeric':{cal:10,protein:0.3,carbs:2,fat:0.2,antiInflam:3,label:'Turmeric'},
+  'haldi':{cal:10,protein:0.3,carbs:2,fat:0.2,antiInflam:3,label:'Haldi'},
+  'ginger':{cal:10,protein:0.2,carbs:2,fat:0.1,antiInflam:3,label:'Ginger'},
+  'adrak':{cal:10,protein:0.2,carbs:2,fat:0.1,antiInflam:3,label:'Adrak'},
+};
 
-  const systemPrompt=`You are an elite Indian vegetarian nutritionist and transformation coach creating personalised meal plans. 
-Your client profile:
-- Female, 39, 5'4", 83 kg, pear-shaped body
-- Pure vegetarian (no eggs, no meat, no fish)
-- Goals: fat loss, waist reduction, toned body, glowing skin, healthy hair, anti-aging
-- Health issues: elevated CRP (8.22 mg/L, was 18.8), ESR 70 mm/hr (high inflammation), left knee pain, low AMH (perimenopause watch), low hematocrit, stress & sleep issues
-- Lifestyle: busy Indian mom, gym 8:30–10:30 AM, post-workout breakfast, lunch 1:30 PM, dinner 8 PM
-- Allergies/dislikes: none specified
-- Uses plant-based protein powder, has 2–3 teas/coffee (reducing to 1)
-Format every meal plan with:
-- Exact food items with gram weights or cup measures
-- Protein content per meal
-- Anti-inflammatory rating (★★★ = excellent, ★★ = good, ★ = neutral)
-- Total daily macros at end
-- 2–3 practical tips specific to her situation
-Use Indian foods: dal, sabzi, roti, khichdi, paneer, tofu, sprouts, moong, rajma, chole, dahi, chaas, poha, idli, upma etc.
-Be specific, practical, and motivating. No markdown headers with #. Use bold for meal names.`;
+// Targets for Diksha
+const TARGETS={cal:1500,protein:85,carbs:150,fat:50};
 
-  const userMsg=`Create a ${planType} for me with focus on: ${focus}. Calorie range: ${cal}.${avoid?` Please avoid/note: ${avoid}.`:''} Make it practical for a busy Indian vegetarian mom who cooks for family.`;
+function initVoice(){
+  const dateEl=document.getElementById('meal-date');
+  const diaryEl=document.getElementById('diary-date');
+  const today=new Date().toISOString().split('T')[0];
+  if(dateEl)dateEl.value=today;
+  if(diaryEl)diaryEl.value=today;
+  loadDiary('today');
+}
 
-  try{
-    const res=await fetch('/.netlify/functions/claude',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({system:systemPrompt,messages:[{role:'user',content:userMsg}]})
-    });
-    const data=await res.json();
-    if(data.content&&data.content[0]){
-      const text=data.content[0].text;
-      output.innerHTML=formatMealOutput(text);
-    }else{
-      output.innerHTML='<span style="color:#dc2626">Could not generate plan. Please check your API connection and try again.</span>';
-    }
-  }catch(err){
-    output.innerHTML='<span style="color:#dc2626">Network error. Ensure you\'re connected and the Anthropic API is reachable. Error: '+err.message+'</span>';
+function toggleRecording(){
+  if(!('webkitSpeechRecognition' in window)&&!('SpeechRecognition' in window)){
+    alert('Voice recording needs Chrome or Safari browser. Please open this site in Chrome for best results.');
+    return;
   }
-  btn.disabled=false;btn.innerHTML='<i class="ti ti-wand" style="margin-right:6px"></i>Generate my personalised meal plan ↗';
+  if(isRecording){stopRecording();}else{startRecording();}
 }
 
-function formatMealOutput(text){
-  return text
-    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
-    .replace(/\n\n/g,'<br><br>')
-    .replace(/\n/g,'<br>')
-    .replace(/★★★/g,'<span style="color:#16a34a">★★★</span>')
-    .replace(/★★(?!★)/g,'<span style="color:#d97706">★★</span>')
-    .replace(/★(?!★)/g,'<span style="color:#888">★</span>');
+function startRecording(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  recognition=new SR();
+  recognition.continuous=true;
+  recognition.interimResults=true;
+  recognition.lang='hi-IN'; // Hindi/Hinglish support
+
+  recognition.onstart=()=>{
+    isRecording=true;
+    const btn=document.getElementById('mic-btn');
+    if(btn){btn.style.background='#dc2626';btn.style.boxShadow='0 4px 14px rgba(220,38,38,.4)';}
+    const wave=document.getElementById('recording-wave');
+    if(wave)wave.style.display='block';
+    const status=document.getElementById('voice-status');
+    if(status)status.textContent='🔴 Listening... speak your meal now';
+  };
+
+  recognition.onresult=(e)=>{
+    let transcript='';
+    for(let i=0;i<e.results.length;i++){transcript+=e.results[i][0].transcript;}
+    const el=document.getElementById('voice-transcript');
+    if(el)el.value=transcript;
+  };
+
+  recognition.onerror=(e)=>{
+    stopRecording();
+    const status=document.getElementById('voice-status');
+    if(status)status.textContent='Microphone error: '+e.error+'. Please allow microphone access.';
+  };
+
+  recognition.onend=()=>{if(isRecording)stopRecording();};
+  recognition.start();
 }
 
-function copyMealPlan(){
-  const text=document.getElementById('meal-output').innerText;
-  navigator.clipboard.writeText(text).then(()=>{
-    const btn=event.target.closest('button');const orig=btn.innerHTML;btn.innerHTML='<i class="ti ti-check" style="font-size:12px"></i> Copied!';
-    setTimeout(()=>btn.innerHTML=orig,2000);
+function stopRecording(){
+  isRecording=false;
+  if(recognition){try{recognition.stop();}catch(e){}}
+  const btn=document.getElementById('mic-btn');
+  if(btn){btn.style.background='#7c3aed';btn.style.boxShadow='0 4px 14px rgba(124,58,237,.3)';}
+  const wave=document.getElementById('recording-wave');
+  if(wave)wave.style.display='none';
+  const status=document.getElementById('voice-status');
+  if(status)status.textContent='✅ Done! Review text above, then tap Analyse.';
+}
+
+function detectFoods(text){
+  const lower=text.toLowerCase();
+  const found=[];
+  Object.keys(FOOD_DB).forEach(key=>{
+    if(lower.includes(key))found.push(FOOD_DB[key]);
   });
+  // deduplicate by label
+  const seen=new Set();
+  return found.filter(f=>{if(seen.has(f.label))return false;seen.add(f.label);return true;});
 }
-function saveMealPlan(){
-  const text=document.getElementById('meal-output').innerText;if(!text||text.length<10)return;
-  const plans=JSON.parse(localStorage.getItem('diksha-saved-meals')||'[]');
-  plans.unshift({text,date:new Date().toLocaleDateString('en-IN'),plan:getSelectedChip('plan'),focus:getSelectedChip('focus')});
-  if(plans.length>10)plans.pop();
-  localStorage.setItem('diksha-saved-meals',JSON.stringify(plans));
-  renderSavedMeals();
-}
-function renderSavedMeals(){
-  const plans=JSON.parse(localStorage.getItem('diksha-saved-meals')||'[]');
-  const area=document.getElementById('saved-meals-area');
-  const list=document.getElementById('saved-meals-list');
-  if(!plans.length){area.style.display='none';return;}
+
+function analyzeMeal(){
+  const transcript=document.getElementById('voice-transcript')?.value?.trim();
+  if(!transcript){alert('Please record or type your meal first!');return;}
+
+  const foods=detectFoods(transcript);
+  const dateEl=document.getElementById('meal-date');
+  const slotEl=document.getElementById('meal-slot');
+  const date=dateEl?dateEl.value:new Date().toISOString().split('T')[0];
+  const slot=slotEl?slotEl.value:'other';
+  const slotLabels={pre_workout:'Pre-workout',breakfast:'Breakfast',lunch:'Lunch',snack:'Snack',dinner:'Dinner',other:'Other'};
+
+  let totalCal=0,totalProtein=0,totalCarbs=0,totalFat=0,totalAI=0;
+  foods.forEach(f=>{totalCal+=f.cal;totalProtein+=f.protein;totalCarbs+=f.carbs;totalFat+=f.fat;totalAI+=f.antiInflam;});
+
+  const avgAI=foods.length?totalAI/foods.length:0;
+  const aiScore=Math.max(0,Math.min(100,Math.round(((avgAI+2)/5)*100)));
+  const proteinScore=Math.min(100,Math.round((totalProtein/25)*100)); // per meal target ~25g
+  const overallScore=Math.round((aiScore*0.5)+(proteinScore*0.5));
+
+  const scoreColor=overallScore>=70?'#16a34a':overallScore>=40?'#d97706':'#dc2626';
+  const scoreBg=overallScore>=70?'#f0fdf4':overallScore>=40?'#fefce8':'#fef2f2';
+
+  // Build feedback
+  let feedback=[];
+  if(totalProtein<15)feedback.push({icon:'⚠️',text:'Low protein for this meal. Add paneer, dahi, dal or sprouts to reach 20–25g per meal.',cls:'alert-yellow'});
+  else if(totalProtein>=20)feedback.push({icon:'✅',text:'Good protein in this meal! Your muscles will thank you.',cls:'alert-green'});
+  if(avgAI<0)feedback.push({icon:'🔥',text:'This meal has inflammatory foods (chai/coffee/fried). Your CRP is already high — try to balance with turmeric, ginger or amla.',cls:'alert-red'});
+  else if(avgAI>=2.5)feedback.push({icon:'💚',text:'Excellent anti-inflammatory meal! This is helping reduce your CRP.',cls:'alert-green'});
+  if(totalCal>500)feedback.push({icon:'ℹ️',text:'This is a calorie-dense meal (~'+totalCal+' kcal). Balance with a lighter next meal.',cls:'alert-blue'});
+  if(!foods.length)feedback.push({icon:'❓',text:'Could not detect specific Indian foods. Try mentioning: dal, roti, paneer, dahi, sabzi, banana, etc.',cls:'alert-yellow'});
+
+  const mealEntry={transcript,slot,slotLabel:slotLabels[slot],foods:foods.map(f=>f.label),cal:totalCal,protein:totalProtein,carbs:totalCarbs,fat:totalFat,aiScore,overallScore,ts:new Date().toISOString()};
+  saveMealEntry(date,mealEntry);
+
+  const area=document.getElementById('meal-analysis');
+  if(!area)return;
   area.style.display='block';
-  list.innerHTML=plans.map((p,i)=>`<div class="card" style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><div style="font-size:12px;font-weight:600;color:#7c3aed">${p.plan} — ${p.focus} <span style="color:#aaa;font-weight:400">${p.date}</span></div><button class="btn btn-sm" onclick="deleteMeal(${i})"><i class="ti ti-trash" style="font-size:12px"></i></button></div><div style="font-size:12px;color:#555;max-height:60px;overflow:hidden">${p.text.substring(0,200)}...</div><button class="btn btn-sm" style="margin-top:6px" onclick="expandMeal(${i})">View full plan</button></div>`).join('');
+  area.innerHTML=`
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        <div class="score-circle" style="background:${scoreBg};color:${scoreColor}">${overallScore}</div>
+        <div>
+          <div style="font-size:13px;font-weight:600;color:#1a1a1a">${slotLabels[slot]} analysis</div>
+          <div style="font-size:11px;color:#888;margin-top:2px">Score out of 100 · based on protein + anti-inflammation</div>
+          <div style="margin-top:5px">${foods.map(f=>`<span class="food-tag">${f.label}</span>`).join('')||'<span style="font-size:11px;color:#aaa">No foods detected</span>'}</div>
+        </div>
+      </div>
+      <div class="grid-4" style="margin-bottom:12px">
+        <div class="metric-card"><div class="metric-label">Calories</div><div class="metric-value" style="font-size:16px">${totalCal}<span class="metric-unit">kcal</span></div></div>
+        <div class="metric-card"><div class="metric-label">Protein</div><div class="metric-value" style="font-size:16px;color:${totalProtein>=20?'#16a34a':'#d97706'}">${totalProtein}<span class="metric-unit">g</span></div></div>
+        <div class="metric-card"><div class="metric-label">Carbs</div><div class="metric-value" style="font-size:16px">${totalCarbs}<span class="metric-unit">g</span></div></div>
+        <div class="metric-card"><div class="metric-label">Anti-inflam</div><div class="metric-value" style="font-size:16px;color:${aiScore>=60?'#16a34a':aiScore>=30?'#d97706':'#dc2626'}">${aiScore}<span class="metric-unit">/100</span></div></div>
+      </div>
+      ${feedback.map(f=>`<div class="alert-box ${f.cls}" style="margin-bottom:6px"><span style="font-size:14px">${f.icon}</span><div style="font-size:12.5px">${f.text}</div></div>`).join('')}
+      <div style="font-size:11px;color:#aaa;margin-top:6px">Saved to your diary ✓</div>
+    </div>`;
+
+  updateTodaySummary(date);
+  const t=document.getElementById('voice-transcript');
+  if(t)t.value='';
+  const s=document.getElementById('voice-status');
+  if(s)s.textContent='Tap the mic and speak your meal in Hindi, English or Hinglish';
 }
-function deleteMeal(i){const p=JSON.parse(localStorage.getItem('diksha-saved-meals')||'[]');p.splice(i,1);localStorage.setItem('diksha-saved-meals',JSON.stringify(p));renderSavedMeals();}
-function expandMeal(i){const p=JSON.parse(localStorage.getItem('diksha-saved-meals')||'[]');document.getElementById('meal-output').innerHTML=formatMealOutput(p[i].text);document.getElementById('meal-result-area').style.display='block';window.scrollTo({top:0,behavior:'smooth'});}
+
+function saveMealEntry(date,entry){
+  const key='diksha-meals-'+date;
+  const existing=JSON.parse(localStorage.getItem(key)||'[]');
+  existing.push(entry);
+  localStorage.setItem(key,JSON.stringify(existing));
+  loadDiary('today');
+}
+
+function updateTodaySummary(date){
+  const key='diksha-meals-'+date;
+  const entries=JSON.parse(localStorage.getItem(key)||'[]');
+  const el=document.getElementById('today-summary');
+  if(!el)return;
+  if(!entries.length){el.innerHTML='<div style="font-size:12.5px;color:#888;text-align:center;padding:10px">No meals logged today yet</div>';return;}
+
+  let totCal=0,totProt=0,totCarbs=0,totFat=0;
+  entries.forEach(e=>{totCal+=e.cal||0;totProt+=e.protein||0;totCarbs+=e.carbs||0;totFat+=e.fat||0;});
+
+  const pPct=Math.min(100,Math.round((totProt/TARGETS.protein)*100));
+  const cPct=Math.min(100,Math.round((totCal/TARGETS.cal)*100));
+
+  el.innerHTML=`
+    <div style="font-size:12px;font-weight:600;color:#7c3aed;margin-bottom:10px">Today's running total — ${entries.length} meal${entries.length>1?'s':''} logged</div>
+    <div class="grid-4" style="margin-bottom:10px">
+      <div class="metric-card"><div class="metric-label">Total cal</div><div class="metric-value" style="font-size:16px;color:${totCal>1600?'#dc2626':'#1a1a1a'}">${totCal}</div><div class="metric-delta ${totCal>1600?'delta-bad':'delta-good'}">Target: 1500</div></div>
+      <div class="metric-card"><div class="metric-label">Protein</div><div class="metric-value" style="font-size:16px;color:${totProt>=85?'#16a34a':totProt>=50?'#d97706':'#dc2626'}">${totProt}g</div><div class="metric-delta ${totProt>=85?'delta-good':'delta-bad'}">Target: 85g</div></div>
+      <div class="metric-card"><div class="metric-label">Carbs</div><div class="metric-value" style="font-size:16px">${totCarbs}g</div><div class="metric-delta delta-neu">Target: 150g</div></div>
+      <div class="metric-card"><div class="metric-label">Fat</div><div class="metric-value" style="font-size:16px">${totFat}g</div><div class="metric-delta delta-neu">Target: 50g</div></div>
+    </div>
+    <div style="margin-bottom:6px">
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:#555;margin-bottom:3px"><span>Protein progress</span><span>${totProt}g / ${TARGETS.protein}g</span></div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pPct}%;background:${pPct>=100?'#16a34a':pPct>=60?'#d97706':'#dc2626'}"></div></div>
+    </div>
+    <div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:#555;margin-bottom:3px"><span>Calorie progress</span><span>${totCal} / ${TARGETS.cal} kcal</span></div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${cPct}%;background:${cPct>=100?'#dc2626':cPct>=70?'#d97706':'#16a34a'}"></div></div>
+    </div>`;
+}
+
+function loadDiary(mode){
+  let date;
+  if(mode==='today'){date=new Date().toISOString().split('T')[0];}
+  else{const el=document.getElementById('diary-date');date=el?el.value:new Date().toISOString().split('T')[0];}
+
+  const key='diksha-meals-'+date;
+  const entries=JSON.parse(localStorage.getItem(key)||'[]');
+  const el=document.getElementById('diary-entries');
+  if(!el)return;
+
+  if(!entries.length){el.innerHTML=`<div style="font-size:12.5px;color:#888;text-align:center;padding:10px">No meals logged for ${date}</div>`;return;}
+
+  el.innerHTML=entries.map((e,i)=>`
+    <div style="padding:10px 0;border-bottom:1px solid #f0ede6;${i===entries.length-1?'border:none':''}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px">
+        <div>
+          <span class="tag tag-purple">${e.slotLabel||e.slot}</span>
+          <span style="font-size:11px;color:#aaa;margin-left:6px">${new Date(e.ts).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</span>
+        </div>
+        <div style="text-align:right">
+          <span style="font-size:13px;font-weight:600;color:#7c3aed">${e.overallScore||0}/100</span>
+        </div>
+      </div>
+      <div style="font-size:12px;color:#444;margin-bottom:5px;font-style:italic">"${e.transcript?.substring(0,100)}${e.transcript?.length>100?'...':''}"</div>
+      <div>${(e.foods||[]).map(f=>`<span class="food-tag">${f}</span>`).join('')}</div>
+      <div style="display:flex;gap:12px;margin-top:5px;font-size:11px;color:#666">
+        <span>🔥 ${e.cal||0} kcal</span><span>💪 ${e.protein||0}g protein</span><span>🌿 Anti-inflam: ${e.aiScore||0}/100</span>
+      </div>
+    </div>`).join('');
+
+  updateTodaySummary(date);
+}
+
+function clearDay(){
+  const el=document.getElementById('diary-date');
+  const date=el?el.value:new Date().toISOString().split('T')[0];
+  if(confirm('Clear all meal entries for '+date+'?')){
+    localStorage.removeItem('diksha-meals-'+date);
+    loadDiary();
+    updateTodaySummary(date);
+  }
+}
 
 /* ── Init ── */
 window.onload=()=>{
   buildHabitGrid();
-  renderSavedMeals();
+  initVoice();
 };
 </script>
 </body>
